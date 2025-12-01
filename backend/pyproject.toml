@@ -1,0 +1,30 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "asyncpg>=0.31.0",
+    "fastapi[standard]>=0.123.0",
+    "psycopg2-binary>=2.9.11",
+    "pydantic>=2.12.5",
+    "sqlmodel>=0.0.27",
+    "uvicorn[standard]>=0.38.0",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19.0",
+    "ruff>=0.14.7",
+]
+
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = false
+disallow_untyped_defs = true  # No function shall exist without types
+
+[tool.ruff]
+select = ["E", "F", "I", "UP"] # I = isort (imports), UP = pyupgrade
+fix = true
