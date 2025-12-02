@@ -14,7 +14,7 @@ engine = create_async_engine(
     pool_pre_ping=True,
     pool_size=5,
     max_overflow=10,
-    pool_recycle=3600
+    pool_recycle=3600,
     pool_timeout=30
 )
 
@@ -23,7 +23,6 @@ AsyncSessionLocal = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
     autoflush=False,
-    autocommit=False,
 )
 
 Base = declarative_base()
@@ -41,7 +40,8 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             await session.commit()
         except Exception as e:
             await session.rollback()
-            raise e 
+            logger.error(f"DB session rollback: {e}")
+            raise 
         finally: 
             await session.close()
 
