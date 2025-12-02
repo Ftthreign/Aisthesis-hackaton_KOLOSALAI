@@ -4,6 +4,8 @@ from sqlalchemy.pool import NullPool
 from typing import AsyncGenerator
 from app.config import settings 
 import logging
+from sqlalchemy import text
+from app.models.base import Base
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +26,6 @@ AsyncSessionLocal = async_sessionmaker(
     expire_on_commit=False,
     autoflush=False,
 )
-
-Base = declarative_base()
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
@@ -48,7 +48,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def check_db_conn():
     try: 
         async with engine.connect() as conn: 
-            await conn.execute(text("SELECT 1")
+            await conn.execute(text("SELECT 1"))
         return True
     except Exception as e:
         logger.error("failed to connect to database")
