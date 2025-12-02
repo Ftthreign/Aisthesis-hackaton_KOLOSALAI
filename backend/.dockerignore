@@ -1,0 +1,29 @@
+# Virtual environment
+.venv
+venv
+env
+
+# Python cache
+__pycache__
+*.py[cod]
+*$py.class
+.pytest_cache
+
+# IDE
+.idea
+.vscode
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+.env.local
+.env*.local
+
+# Dev files
+.coverage
+htmlcov
+.mypy_cache
+.ruff_cache

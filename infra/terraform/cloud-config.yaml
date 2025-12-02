@@ -1,0 +1,156 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - docker.io
+  - docker-compose-v2
+  - nginx
+
+bootcmd:
+  - mkdir -p /opt/aisthesis
+  - mkdir -p /root/.docker
+
+write_files:
+  - path: /root/.docker/config.json
+    permissions: "0600"
+    content: |
+      ${docker_auth}
+
+  - path: /etc/ssl/certs/cloudflare-origin.pem
+    content: |
+      ${ssl_cert}
+    permissions: "0644"
+
+  - path: /etc/ssl/private/cloudflare-origin.key
+    content: |
+      ${ssl_key}
+    permissions: "0600"
+
+  - path: /opt/aisthesis/.env
+    content: |
+      DATABASE_URL=postgresql+asyncpg://${db_user}:${db_password}@db:5432/aisthesis
+      POSTGRES_USER=${db_user}
+      POSTGRES_PASSWORD=${db_password}
+      POSTGRES_DB=aisthesis
+      JWT_SECRET=${jwt_secret}
+    permissions: "0600"
+
+  - path: /opt/aisthesis/docker-compose.yaml
+    content: |
+      services:
+        frontend:
+          image: ${registry_url}/frontend:latest
+          restart: unless-stopped
+          ports:
+            - "127.0.0.1:3000:3000"
+          networks:
+            - aisthesis
+
+        backend:
+          image: ${registry_url}/backend:latest
+          restart: unless-stopped
+          ports:
+            - "127.0.0.1:8000:8000"
+          env_file:
+            - .env
+          depends_on:
+            db:
+              condition: service_healthy
+          networks:
+            - aisthesis
+
+        db:
+          image: postgres:16-alpine
+          restart: unless-stopped
+          env_file:
+            - .env
+          volumes:
+            - postgres_data:/var/lib/postgresql/data
+          healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+          networks:
+            - aisthesis
+
+      volumes:
+        postgres_data:
+
+      networks:
+        aisthesis:
+          driver: bridge
+    permissions: "0644"
+
+  - path: /etc/nginx/sites-available/aisthesis
+    content: |
+      upstream frontend {
+          server 127.0.0.1:3000;
+      }
+
+      upstream backend {
+          server 127.0.0.1:8000;
+      }
+
+      # Redirect HTTP to HTTPS
+      server {
+          listen 80;
+          server_name ${domain} *.${domain};
+          return 301 https://$host$request_uri;
+      }
+
+      # HTTPS server
+      server {
+          listen 443 ssl http2;
+          server_name ${domain} *.${domain};
+
+          ssl_certificate /etc/ssl/certs/cloudflare-origin.pem;
+          ssl_certificate_key /etc/ssl/private/cloudflare-origin.key;
+          ssl_protocols TLSv1.2 TLSv1.3;
+          ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+          ssl_prefer_server_ciphers off;
+
+          location / {
+              proxy_pass http://frontend;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection 'upgrade';
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+              proxy_cache_bypass $http_upgrade;
+          }
+
+          location /api/ {
+              proxy_pass http://backend;
+              proxy_http_version 1.1;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+          }
+      }
+    permissions: "0644"
+
+runcmd:
+  # Enable and start Docker
+  - systemctl enable docker
+  - systemctl start docker
+
+  # Configure nginx
+  - ln -sf /etc/nginx/sites-available/aisthesis /etc/nginx/sites-enabled/
+  - rm -f /etc/nginx/sites-enabled/default
+  - systemctl enable nginx
+
+  # Wait for docker to be ready
+  - sleep 5
+
+  # Pull and start the application
+  - cd /opt/aisthesis && docker compose pull
+  - cd /opt/aisthesis && docker compose up -d
+
+  # Test and restart nginx
+  - nginx -t && systemctl restart nginx
