@@ -20,8 +20,8 @@ FROM base AS runner
 WORKDIR /app
 
 # Create non-root user
-RUN addgroup --system --gid 1001 appgroup
-RUN adduser --system --uid 1001 appuser
+RUN addgroup --system --gid 1001 appgroup && \
+    adduser --system --uid 1001 appuser
 
 # Copy virtual environment from deps stage
 COPY --from=deps /app/.venv /app/.venv
@@ -29,10 +29,12 @@ COPY --from=deps /app/.venv /app/.venv
 # Copy application code
 COPY --chown=appuser:appgroup . .
 
+# Set environment
+ENV PATH="/app/.venv/bin:$PATH"
+
 USER appuser
 
 EXPOSE 8000
 
-ENV PATH="/app/.venv/bin:$PATH"
-
+# Run the FastAPI app with uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
