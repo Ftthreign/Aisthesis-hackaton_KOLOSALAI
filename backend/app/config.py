@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
 
-class Settins(BaseSettings):
+class Settings(BaseSettings):
     DATABASE_URL: str
     DATABASE_URL_SYNC: str
 
@@ -24,4 +24,4 @@ class Settins(BaseSettings):
         env_file = ".env"
         case_sensitive = True
 
-settings = Settins()
+settings = Settings()
