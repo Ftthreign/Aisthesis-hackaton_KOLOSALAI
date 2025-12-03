@@ -1,12 +1,11 @@
-from pydantic import BaseModel 
-from typing import Optional 
+from pydantic import BaseModel
+
 
 class AnalysisTasteResponse(BaseModel):
-    taste_profile: Optional[List[str]] = None 
-    aroma_profile: Optional[List[str]] = None 
-    sensory_persona: Optional[str] = None 
-    pairing: Optional[List[str]] = None 
+    taste_profile: list[str] | None = None
+    aroma_profile: list[str] | None = None
+    sensory_persona: str | None = None
+    pairing: list[str] | None = None
 
     class Config:
         orm_mode = True
-

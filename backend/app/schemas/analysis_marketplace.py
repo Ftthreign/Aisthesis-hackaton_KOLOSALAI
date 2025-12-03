@@ -1,11 +1,10 @@
 from pydantic import BaseModel
-from typing import Optional
 
 
 class AnalysisMarketplaceResponse(BaseModel):
-    shopee_desc: Optional[str] = None
-    tokopedia_desc: Optional[str] = None
-    instagram_desc: Optional[str] = None
+    shopee_desc: str | None = None
+    tokopedia_desc: str | None = None
+    instagram_desc: str | None = None
 
     class Config:
         orm_mode = True

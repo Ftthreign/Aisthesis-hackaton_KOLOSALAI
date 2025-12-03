@@ -1,5 +1,7 @@
-from os import environ
+# flake8: noqa
 from collections.abc import AsyncGenerator
+from os import environ
+
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 DATABASE_URL = environ.get("DATABASE_URL")
@@ -24,4 +26,3 @@ async_session_maker = async_sessionmaker(
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session
-

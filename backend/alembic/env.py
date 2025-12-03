@@ -1,20 +1,18 @@
-from logging.config import fileConfig
+# flake8: noqa
 import os
 import sys
-
-from sqlalchemy import engine_from_config
-from sqlalchemy.engine import Connection
-from sqlalchemy.pool import NullPool
+from logging.config import fileConfig
 
 from alembic import context
+from sqlalchemy import engine_from_config
+from sqlalchemy.pool import NullPool
 
 # Tambahkan path project
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+import app.models
 from app.config import settings
 from app.database import Base
-import app.models
-
 
 print("=== DEBUG METADATA TABLES ===")
 print(Base.metadata.tables.keys())
