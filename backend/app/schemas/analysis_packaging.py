@@ -1,10 +1,9 @@
 from pydantic import BaseModel
-from typing import List, Optional
 
 
 class AnalysisPackagingResponse(BaseModel):
-    suggestions: Optional[List[str]] = None
-    material_recommendations: Optional[List[str]] = None
+    suggestions: list[str] | None = None
+    material_recommendations: list[str] | None = None
 
     class Config:
         orm_mode = True

@@ -1,15 +1,18 @@
-from pydantic import BaseModel
-from typing import Any, Dict, List, Optional
-
 """
 impl: [TEMP] From Gemini API response
 """
+
+from typing import Any
+
+from pydantic import BaseModel
+
+
 class VisionResult(BaseModel):
-    labels: Optional[List[str]] = None
-    colors: Optional[List[str]] = None
-    objects: Optional[List[str]] = None
-    mood: Optional[str] = None
-    raw: Optional[Dict[str, Any]] = None 
+    labels: list[str] | None = None
+    colors: list[str] | None = None
+    objects: list[str] | None = None
+    mood: str | None = None
+    raw: dict[str, Any] | None = None
 
     class Config:
         orm_mode = True

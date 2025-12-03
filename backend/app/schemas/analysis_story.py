@@ -1,14 +1,14 @@
-from pydantic import BaseModel 
-from typing import Optional 
+from pydantic import BaseModel
+
 
 class AnalysisStoryResponse(BaseModel):
-    product_name: Optional[str] = None
-    tagline: Optional[str] = None
-    short_desc: Optional[str] = None
-    long_desc: Optional[str] = None
-    caption_casual: Optional[str] = None
-    caption_professional: Optional[str] = None
-    caption_storytelling: Optional[str] = None
+    product_name: str | None = None
+    tagline: str | None = None
+    short_desc: str | None = None
+    long_desc: str | None = None
+    caption_casual: str | None = None
+    caption_professional: str | None = None
+    caption_storytelling: str | None = None
 
     class Config:
         orm_mode = True

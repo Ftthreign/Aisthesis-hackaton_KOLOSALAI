@@ -1,10 +1,9 @@
 from pydantic import BaseModel
-from typing import List, Optional
 
 
 class AnalysisSEOResponse(BaseModel):
-    keywords: Optional[List[str]] = None
-    hashtags: Optional[List[str]] = None
+    keywords: list[str] | None = None
+    hashtags: list[str] | None = None
 
     class Config:
         orm_mode = True

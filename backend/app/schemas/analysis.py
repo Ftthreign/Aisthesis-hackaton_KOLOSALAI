@@ -1,24 +1,24 @@
-from pydantic import BaseModel
-from uuid import UUID
 from datetime import datetime
-from typing import Optional
+from uuid import UUID
 
-from .vision import VisionResult
+from pydantic import BaseModel
+
+from .analysis_action_plan import AnalysisActionPlanResponse
+from .analysis_branding import AnalysisBrandThemeResponse
+from .analysis_marketplace import AnalysisMarketplaceResponse
+from .analysis_packaging import AnalysisPackagingResponse
+from .analysis_person import AnalysisPersonaResponse
+from .analysis_pricing import AnalysisPricingResponse
+from .analysis_seo import AnalysisSEOResponse
 from .analysis_story import AnalysisStoryResponse
 from .analysis_taste import AnalysisTasteResponse
-from .analysis_pricing import AnalysisPricingResponse
-from .analysis_branding import AnalysisBrandThemeResponse
-from .analysis_seo import AnalysisSEOResponse
-from .analysis_marketplace import AnalysisMarketplaceResponse
-from .analysis_person import AnalysisPersonaResponse
-from .analysis_packaging import AnalysisPackagingResponse
-from .analysis_action_plan import AnalysisActionPlanResponse
+from .vision import VisionResult
 
 
 class AnalysisBase(BaseModel):
     image_url: str
     image_filename: str
-    vision_result: Optional[VisionResult] = None
+    vision_result: VisionResult | None = None
 
 
 class AnalysisResponse(AnalysisBase):
@@ -26,15 +26,15 @@ class AnalysisResponse(AnalysisBase):
     created_at: datetime
     updated_at: datetime
 
-    story: Optional[AnalysisStoryResponse] = None
-    taste: Optional[AnalysisTasteResponse] = None
-    pricing: Optional[AnalysisPricingResponse] = None
-    brand_theme: Optional[AnalysisBrandThemeResponse] = None
-    seo: Optional[AnalysisSEOResponse] = None
-    marketplace: Optional[AnalysisMarketplaceResponse] = None
-    persona: Optional[AnalysisPersonaResponse] = None
-    packaging: Optional[AnalysisPackagingResponse] = None
-    action_plan: Optional[AnalysisActionPlanResponse] = None
+    story: AnalysisStoryResponse | None = None
+    taste: AnalysisTasteResponse | None = None
+    pricing: AnalysisPricingResponse | None = None
+    brand_theme: AnalysisBrandThemeResponse | None = None
+    seo: AnalysisSEOResponse | None = None
+    marketplace: AnalysisMarketplaceResponse | None = None
+    persona: AnalysisPersonaResponse | None = None
+    packaging: AnalysisPackagingResponse | None = None
+    action_plan: AnalysisActionPlanResponse | None = None
 
     class Config:
         orm_mode = True

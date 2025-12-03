@@ -1,6 +1,5 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel
-
 from users.router import router as users_router
 
 # Main app with /api/v1 prefix for docs
