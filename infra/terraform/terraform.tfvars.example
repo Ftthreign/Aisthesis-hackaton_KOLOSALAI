@@ -8,5 +8,10 @@ do_token       = "aaaaaaaaaaaaa"
 db_user        = "aaaaaaaaaaaaaaa"
 db_password    = "aaaaaaaaaaa"
 jwt_secret     = "aaaaaaaaaaa"
-ssl_cert_path = "../cf_cert.pem"
-ssl_key_path  = "../cf_key.pem"
+ssl_cert_path  = "../cf_cert.pem"
+ssl_key_path   = "../cf_key.pem"
+
+# Google OAuth
+google_client_id     = "your-google-client-id.apps.googleusercontent.com"
+google_client_secret = "your-google-client-secret"
+nextauth_secret      = "your-nextauth-secret-generate-with-openssl-rand-base64-32"

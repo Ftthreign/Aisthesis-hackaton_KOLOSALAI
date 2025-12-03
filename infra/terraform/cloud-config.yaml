@@ -30,11 +30,33 @@ write_files:
 
   - path: /opt/aisthesis/.env
     content: |
+      # Database
       DATABASE_URL=postgresql+asyncpg://${db_user}:${db_password}@db:5432/aisthesis
+      DATABASE_URL_SYNC=postgresql://${db_user}:${db_password}@db:5432/aisthesis
       POSTGRES_USER=${db_user}
       POSTGRES_PASSWORD=${db_password}
       POSTGRES_DB=aisthesis
-      JWT_SECRET=${jwt_secret}
+      
+      # JWT & Auth
+      SECRET_KEY=${jwt_secret}
+      ALGORITHM=HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES=30
+      REFRESH_TOKEN_EXPIRE_DAYS=7
+      
+      # Google OAuth
+      GOOGLE_CLIENT_ID=${google_client_id}
+      GOOGLE_CLIENT_SECRET=${google_client_secret}
+      
+      # NextAuth (Frontend)
+      NEXTAUTH_SECRET=${nextauth_secret}
+      NEXTAUTH_URL=https://${domain}
+      NEXT_PUBLIC_API_URL=https://${domain}/api/v1
+      
+      # CORS
+      ALLOWED_ORIGINS_STR=https://${domain}
+      
+      # Environment
+      ENVIRONMENT=production
     permissions: "0600"
 
   - path: /opt/aisthesis/docker-compose.yaml
@@ -45,6 +67,13 @@ write_files:
           restart: unless-stopped
           ports:
             - "127.0.0.1:3000:3000"
+          environment:
+            - NODE_ENV=production
+            - GOOGLE_CLIENT_ID=${google_client_id}
+            - GOOGLE_CLIENT_SECRET=${google_client_secret}
+            - NEXTAUTH_SECRET=${nextauth_secret}
+            - NEXTAUTH_URL=https://${domain}
+            - NEXT_PUBLIC_API_URL=https://${domain}/api/v1
           networks:
             - aisthesis
 
