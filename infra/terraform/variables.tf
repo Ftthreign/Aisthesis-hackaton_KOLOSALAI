@@ -66,3 +66,21 @@ variable "ssl_key_path" {
   type        = string
   default     = "../cf_key.pem"
 }
+
+variable "google_client_id" {
+  description = "Google OAuth Client ID"
+  type        = string
+  sensitive   = true
+}
+
+variable "google_client_secret" {
+  description = "Google OAuth Client Secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "nextauth_secret" {
+  description = "NextAuth.js secret for session encryption"
+  type        = string
+  sensitive   = true
+}

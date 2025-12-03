@@ -1,7 +1,7 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel
-
 from users.router import router as users_router
+from users.auth_router import router as auth_router
 
 # Main app with /api/v1 prefix for docs
 app = FastAPI(
@@ -20,6 +20,7 @@ class HealthResponse(BaseModel):
 
 router = APIRouter(prefix="/api/v1")
 router.include_router(users_router)
+router.include_router(auth_router)
 
 
 @router.get("/health", response_model=HealthResponse)
