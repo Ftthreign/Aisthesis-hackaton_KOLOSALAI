@@ -45,4 +45,6 @@ class Settings(BaseSettings):
         return [ext.strip() for ext in self.ALLOWED_EXTENSIONS_STR.split(",") if ext.strip()]
 
 
+
 settings = Settings()
+
