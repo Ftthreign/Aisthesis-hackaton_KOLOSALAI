@@ -1,4 +1,4 @@
-import { auth, signIn } from "@/auth";
+import { auth, signIn } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ModeToggle } from "@/components/theme/ModeToggle";
