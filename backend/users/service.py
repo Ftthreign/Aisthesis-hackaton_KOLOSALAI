@@ -58,4 +58,3 @@ class UserService:
         await self.session.commit()
         await self.session.refresh(db_user)
         return db_user
-
