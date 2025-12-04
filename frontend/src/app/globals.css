@@ -3,7 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  
+
   /* Food-themed colors */
   --food-orange: #f97316;
   --food-orange-light: #fb923c;
@@ -22,7 +22,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  
+
   /* Food theme colors */
   --color-food-orange: var(--food-orange);
   --color-food-orange-light: var(--food-orange-light);

@@ -1,293 +1,317 @@
-# **AISTHESIS API Documentation**
+# AISTHESIS API — Developer Documentation
 
-Dokumentasi resmi API untuk integrasi frontend–backend AISTHESIS.
-Semua request yang membutuhkan autentikasi wajib mengirimkan **Google ID Token** melalui header:
+Dokumentasi teknis untuk pengembangan backend dan integrasi frontend.
+Semua endpoint menggunakan autentikasi JWT yang dihasilkan dari proses login Google.
+
+---
+
+# 🚀 Overview
+
+## Teknologi Utama
+
+- **FastAPI** (Backend)
+- **PostgreSQL** (Database)
+- **SQLAlchemy 2.0 (Async)**
+- **Alembic** (Database migration)
+- **Pydantic v2**
+- **Google OAuth (ID Token)**
+- **JWT** (Auth)
+
+---
+
+# 🗂 Project Structure (Backend)
 
 ```
-Authorization: Bearer <google_id_token>
+app/
+│── config.py
+│── main.py
+│── database.py
+│
+├── models/
+│   ├── user.py
+│   ├── oauth.py
+│   ├── analysis.py
+│   └── ...
+│
+├── schemas/
+│   ├── auth.py
+│   ├── user.py
+│   ├── analysis_*.py
+│   └── ...
+│
+├── routers/
+│   └── ...
+│
+└── services/
+    └── ...
 ```
 
 ---
 
-# **📌 Base URL**
+# ⚙️ Environment Setup
 
-- **Production Backend:** `https://<your-backend-domain>`
-- Semua endpoint berada di root (`/`).
+## 1. Install dependencies
+
+```
+pip install -r requirements.txt
+```
+
+## 2. Isi file `.env`
+
+```
+DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/aisthesis
+DATABASE_URL_SYNC=postgresql://user:pass@localhost:5432/aisthesis
+
+SECRET_KEY=your-secret
+GOOGLE_CLIENT_ID=xxxxxxxx.apps.googleusercontent.com
+```
+
+## 3. Jalankan database migration
+
+```
+alembic upgrade head
+```
+
+## 4. Jalankan development server
+
+```
+uvicorn app.main:app --reload
+```
 
 ---
 
-# **📘 Authentication**
+# 🔐 Authentication Flow (Developer Version)
 
-## **GET /auth/verify**
+AISTHESIS **tidak menggunakan refresh Google setiap login**.
+Backend hanya butuh:
 
-Verifikasi Google ID Token dan mengembalikan data user.
+1. Frontend mendapatkan **Google ID Token**
+2. Frontend mengirim ID Token ke backend
+3. Backend memverifikasi → membuat user jika baru → generate JWT internal
 
-### **Headers**
+---
+
+# 🔑 Login Flow Detail
+
+### 1. Frontend memanggil Google (GIS / One-Tap / NextAuth)
+
+Frontend menerima:
 
 ```
-Authorization: Bearer <google_id_token>
+credential = <google_id_token>
 ```
 
-### **Response 200**
+### 2. Frontend kirim token ke backend
+
+```
+POST /auth/google/login
+Body:
+{
+  "id_token": "<google_id_token>"
+}
+```
+
+### 3. Backend response:
 
 ```json
 {
-  "id": "uuid",
-  "email": "user@gmail.com",
-  "name": "User Name",
-  "avatar_url": "https://...",
-  "is_active": true,
-  "created_at": "2025-01-01T10:20:30",
-  "updated_at": "2025-01-01T10:20:30"
+  "access_token": "<jwt>",
+  "refresh_token": "<jwt>"
+}
+```
+
+### 4. Semua request berikutnya:
+
+```
+Authorization: Bearer <access_token>
+```
+
+---
+
+# 📌 Authentication Endpoints
+
+## **POST /auth/google/login**
+
+- Verifikasi Google ID Token
+- Create user jika belum ada
+- Return `access_token` & `refresh_token`
+
+Example request:
+
+```json
+{
+  "id_token": "<google_id_token>"
+}
+```
+
+Response:
+
+```json
+{
+  "access_token": "jwt",
+  "refresh_token": "jwt",
+  "token_type": "bearer"
 }
 ```
 
 ---
 
-# **📤 Upload & Analysis**
+## **GET /auth/profile**
+
+Mengambil user saat ini (berdasarkan JWT internal).
+
+Headers:
+
+```
+Authorization: Bearer <access_token>
+```
+
+---
+
+# 🖼️ Analysis Engine
 
 ## **POST /analysis**
 
-Melakukan upload gambar dan menjalankan AI Analysis (Vision + LLM).
+- Upload gambar
+- Jalankan Vision AI
+- Generate branding, storytelling, persona, pricing, dll.
 
-### **Headers**
+Request:
 
 ```
-Authorization: Bearer <google_id_token>
 Content-Type: multipart/form-data
-```
-
-### **Body (form-data)**
-
-```
 file: <image>
 ```
 
-### **Response 200 (AnalysisResponse)**
+Response: `AnalysisResponse` lengkap (object besar).
 
-```json
-{
-  "id": "uuid",
-  "image_url": "https://cdn.../image.jpg",
-  "image_filename": "image.jpg",
+---
 
-  "vision_result": {
-    "labels": ["coffee", "latte"],
-    "colors": ["brown", "white"],
-    "objects": ["cup", "foam"],
-    "mood": "cozy",
-    "raw": {}
-  },
+# 📜 History Endpoints
 
-  "story": {
-    "product_name": "Latte Caramel Bliss",
-    "tagline": "Manis, lembut, dan hangat di hati",
-    "short_desc": "Latte caramel dengan rasa creamy.",
-    "long_desc": "Perpaduan espresso premium dan caramel...",
-    "caption_casual": "Siap nemenin hari kamu 😋☕",
-    "caption_professional": "Latte caramel dengan cita rasa...",
-    "caption_storytelling": "Pagi itu, aroma kopi menyapa..."
-  },
+### **GET /history**
 
-  "taste": {
-    "taste_profile": ["manis", "creamy", "light bitterness"],
-    "aroma_profile": ["caramel", "coffee roast"],
-    "sensory_persona": "Hangat, lembut, friendly",
-    "pairing": ["cookies", "croissant"]
-  },
+Daftar semua analisis milik user.
 
-  "pricing": {
-    "recommended_price": 25000,
-    "min_price": 20000,
-    "max_price": 30000,
-    "reasoning": "Harga menyesuaikan tren coffee shop urban...",
-    "promo_strategy": ["beli 2 gratis 1", "happy hour 4-6 pm"],
-    "best_posting_time": "09:00 - 11:00"
-  },
+### **GET /history/{id}**
 
-  "brand_theme": {
-    "primary_color": "#A47551",
-    "secondary_color": "#E6D5C3",
-    "accent_color": "#F5F5F5",
-    "tone": "hangat, cozy, friendly",
-    "style_suggestions": ["soft shadow", "warm tone", "flat composition"]
-  },
+Detail satu analisis.
 
-  "seo": {
-    "keywords": ["latte caramel", "coffee shop", "cozy drink"],
-    "hashtags": ["#latte", "#coffeelover", "#caramellatte"]
-  },
+### **DELETE /history/{id}**
 
-  "marketplace": {
-    "shopee_desc": "Nikmati Latte Caramel Bliss...",
-    "tokopedia_desc": "Rasakan kelembutan latte caramel...",
-    "instagram_desc": "Siap nemenin pagi kamu ☕✨"
-  },
+Menghapus analisis.
 
-  "persona": {
-    "name": "Karin, The Cozy Explorer",
-    "bio": "Suka mencoba kopi baru di setiap perjalanan...",
-    "demographics": {
-      "age_range": "18-30",
-      "location": "Urban Indonesia",
-      "gender": "female"
-    },
-    "motivations": ["cari minuman manis yang tidak enek", "butuh vibes cozy"],
-    "pain_points": ["kopi terlalu pahit", "minuman estetis tapi overpriced"]
-  },
+Semua butuh:
 
-  "packaging": {
-    "suggestions": [
-      "Cup warna cream & caramel",
-      "Label dengan font hangat",
-      "Sticker minimalis"
-    ],
-    "material_recommendations": ["Cup kertas premium"]
-  },
-
-  "action_plan": {
-    "day_1": "Posting teaser foto produk",
-    "day_2": "Upload video pouring caramel",
-    "day_3": "Promo bundling pagi",
-    "day_4": "UGC challenge",
-    "day_5": "Posting testimoni",
-    "day_6": "Live story: behind the cup",
-    "day_7": "Promo penutup minggu"
-  },
-
-  "created_at": "2025-01-01T10:20:30",
-  "updated_at": "2025-01-01T10:20:30"
-}
+```
+Authorization: Bearer <access_token>
 ```
 
 ---
 
-# **📜 History**
+# 📥 Export Endpoints
 
-## **GET /history**
+### **GET /export/pdf/{id}**
 
-Menampilkan daftar analisis milik user.
+Mendownload PDF hasil analisis.
 
-### **Headers**
+### **GET /export/json/{id}**
+
+Mengambil file JSON mentah.
+
+---
+
+# 🧩 Data Model Summary (Simplified)
+
+Semua analisis `Analysis` memiliki relasi:
+
+- story
+- taste
+- pricing
+- brand_theme
+- seo
+- marketplace
+- persona
+- packaging
+- action_plan
+
+---
+
+# 🔄 Frontend Integration Guide
+
+## Step 1. Ambil Google ID Token
+
+Gunakan:
+
+- Google Identity Services (GIS)
+- Atau NextAuth (provider: Google)
+
+Result:
 
 ```
-Authorization: Bearer <google_id_token>
+id_token = <google_id_token>
 ```
 
-### **Response 200**
+## Step 2. Kirim ke backend
 
-```json
-[
-  {
-    "id": "uuid",
-    "image_url": "https://cdn.../latte.jpg",
-    "created_at": "2025-01-01T10:20:30"
-  },
-  {
-    "id": "uuid",
-    "image_url": "https://cdn.../matcha.jpg",
-    "created_at": "2025-01-03T12:11:20"
-  }
-]
+```js
+const res = await fetch("/auth/google/login", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ id_token }),
+});
+```
+
+## Step 3. Simpan token
+
+```
+localStorage.setItem("access_token", data.access_token)
+```
+
+## Step 4. Gunakan token
+
+```js
+fetch("/auth/profile", {
+  headers: { Authorization: `Bearer ${token}` },
+});
 ```
 
 ---
 
-## **GET /history/{id}**
+# ⚠️ Important Notes (Developer)
 
-Mengambil data detail 1 analisis.
+- Backend **tidak menerima Google ID Token di Authorization header**
+  → hanya menerima **JWT internal**
+- Authorization header HARUS format:
 
-### **Response 200**
+  ```
+  Bearer <access_token>
+  ```
 
-```json
-{ ... AnalysisResponse ... }
-```
-
----
-
-## **DELETE /history/{id}**
-
-Menghapus 1 analisis.
-
-### **Response 200**
-
-```json
-{ "message": "deleted" }
-```
+- JWT akan berisi `sub = user_id`
+- `get_current_user` membaca JWT, bukan Google token lagi
+- Migration wajib dijalankan setelah update model
 
 ---
 
-# **📥 Export**
+# 📎 Useful Commands
 
-## **GET /export/pdf/{id}**
-
-Mendownload hasil analisis dalam bentuk PDF.
-
-### **Response**
-
-Content-Type:
+Generate new migration:
 
 ```
-application/pdf
+alembic revision --autogenerate -m "message"
 ```
 
-(Hasil berupa file streaming.)
+Upgrade:
 
----
-
-## **GET /export/json/{id}**
-
-Mendownload hasil analisis dalam bentuk JSON mentah.
-
-### **Response**
-
-```json
-{ ... AnalysisResponse ... }
+```
+alembic upgrade head
 ```
 
----
+Downgrade:
 
-# **📦 Data Structure Summary**
-
-## **AnalysisResponse**
-
-```json
-{
-  "id": "uuid",
-  "image_url": "string",
-  "vision_result": { ... },
-  "story": { ... },
-  "taste": { ... },
-  "pricing": { ... },
-  "brand_theme": { ... },
-  "seo": { ... },
-  "marketplace": { ... },
-  "persona": { ... },
-  "packaging": { ... },
-  "action_plan": { ... },
-  "created_at": "string",
-  "updated_at": "string"
-}
 ```
-
----
-
-# **🛠️ Usage Flow (Frontend)**
-
-1. User login via Google (NextAuth)
-2. NextAuth menyimpan Google ID Token
-3. Frontend kirim token via header ke backend
-4. Upload gambar → `/analysis`
-5. Muncul dashboard hasil analisis
-6. History bisa ditarik dari `/history`
-7. Download PDF/JSON jika diperlukan
-
----
-
-# **📞 Kontak Tim Backend**
-
-- Pastikan selalu kirim Google ID Token
-- Pastikan file dikirim dalam format `multipart/form-data`
-- Backend menolak request tanpa header Authorization
+alembic downgrade -1
+```
 
 ---

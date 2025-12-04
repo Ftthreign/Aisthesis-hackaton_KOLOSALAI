@@ -9,7 +9,7 @@ repos:
         args:
           - "--max-line-length=250"
           - "--ignore=E203,W503"
-        files: "^app/.*\\.py$"
+        files: ^app/.*\.py$
 
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: v5.10.1
@@ -18,7 +18,7 @@ repos:
         args:
           - "--profile=black"
           - "--line-length=250"
-        files: "^app/.*\\.py$"
+        files: ^app/.*\.py$
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.15.0
@@ -26,15 +26,20 @@ repos:
       - id: pyupgrade
         args:
           - "--py310-plus"
-        files: "^app/.*\\.py$"
+        files: ^app/.*\.py$
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
       - id: check-added-large-files
+        files: ^app/.*\.py$
       - id: check-ast
+        files: ^app/.*\.py$
       - id: check-docstring-first
+        files: ^app/.*\.py$
       - id: check-yaml
+        files: ^app/.*\.py$
       - id: end-of-file-fixer
+        files: ^app/.*\.py$
       - id: trailing-whitespace
-    files: "^app/.*\\.py$"
+        files: ^app/.*\.py$

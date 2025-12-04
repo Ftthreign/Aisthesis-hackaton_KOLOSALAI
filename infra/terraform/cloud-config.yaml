@@ -36,25 +36,25 @@ write_files:
       POSTGRES_USER=${db_user}
       POSTGRES_PASSWORD=${db_password}
       POSTGRES_DB=aisthesis
-      
+
       # JWT & Auth
       SECRET_KEY=${jwt_secret}
       ALGORITHM=HS256
       ACCESS_TOKEN_EXPIRE_MINUTES=30
       REFRESH_TOKEN_EXPIRE_DAYS=7
-      
+
       # Google OAuth
       GOOGLE_CLIENT_ID=${google_client_id}
       GOOGLE_CLIENT_SECRET=${google_client_secret}
-      
+
       # NextAuth (Frontend)
       NEXTAUTH_SECRET=${nextauth_secret}
       NEXTAUTH_URL=https://${domain}
       NEXT_PUBLIC_API_URL=https://${domain}/api/v1
-      
+
       # CORS
       ALLOWED_ORIGINS_STR=https://${domain}
-      
+
       # Environment
       ENVIRONMENT=production
     permissions: "0600"
