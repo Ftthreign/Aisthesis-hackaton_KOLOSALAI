@@ -433,12 +433,3 @@ uvicorn app.main:app --reload
 ```
 
 ---
-
-Kalau kamu mau, saya bisa:
-
-✓ Buatkan **PDF template**
-✓ Tambahkan endpoint `/export/zip`
-✓ Buat CLI internal untuk batch processing
-✓ Buatkan architecture diagram (C4 model / sequence diagram)
-
-Tinggal bilang saja tanpa basa-basi.
