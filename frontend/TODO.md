@@ -85,6 +85,16 @@ Based on the Hackathon.md requirements.
 - [ ] Optimistic updates for delete
 - [ ] Cache invalidation strategy
 
+### Localization (ID/EN)
+
+- [ ] Setup i18n library (next-intl)
+- [ ] Create translation files for Indonesian (id)
+- [ ] Create translation files for English (en)
+- [ ] Language switcher component in header
+- [ ] Translate all UI text (buttons, labels, messages)
+- [ ] Translate analysis result sections
+- [ ] Persist language preference (localStorage/cookie)
+
 ---
 
 ## 📁 Route Structure
