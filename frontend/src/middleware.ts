@@ -6,7 +6,7 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth
 
   // Public routes that don't require authentication
-  const publicRoutes = ["/auth/signin"]
+  const publicRoutes = ["/auth/signin", "/"]
   const isPublicRoute = publicRoutes.some((route) => pathname === route)
   const isApiRoute = pathname.startsWith("/api")
 

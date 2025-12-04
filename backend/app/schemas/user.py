@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class UserBase(BaseModel):
@@ -9,6 +9,11 @@ class UserBase(BaseModel):
     name: str | None = None
     avatar_url: str | None = None
     is_active: bool = True
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    name: str | None = None
 
 
 class UserResponse(UserBase):

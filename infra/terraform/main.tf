@@ -31,14 +31,17 @@ resource "digitalocean_droplet" "aisthesis" {
   ssh_keys = [data.digitalocean_ssh_key.main.id]
 
   user_data = templatefile("cloud-config.yaml", {
-    docker_auth  = indent(6, digitalocean_container_registry_docker_credentials.aisthesis.docker_credentials)
-    registry_url = "registry.digitalocean.com/${var.do_registry}"
-    db_user      = var.db_user
-    db_password  = var.db_password
-    jwt_secret   = var.jwt_secret
-    domain       = var.domain
-    ssl_cert     = indent(6, file(var.ssl_cert_path))
-    ssl_key      = indent(6, file(var.ssl_key_path))
+    docker_auth          = indent(6, digitalocean_container_registry_docker_credentials.aisthesis.docker_credentials)
+    registry_url         = "registry.digitalocean.com/${var.do_registry}"
+    db_user              = var.db_user
+    db_password          = var.db_password
+    jwt_secret           = var.jwt_secret
+    domain               = var.domain
+    ssl_cert             = indent(6, file(var.ssl_cert_path))
+    ssl_key              = indent(6, file(var.ssl_key_path))
+    google_client_id     = var.google_client_id
+    google_client_secret = var.google_client_secret
+    nextauth_secret      = var.nextauth_secret
   })
 
   connection {
