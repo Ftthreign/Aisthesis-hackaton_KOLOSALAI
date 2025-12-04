@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ImageIcon, AnalyzeIcon, CheckIcon } from "./icons";
+import { ImagePlus, ClipboardCheck, Check, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function UploadForm() {
@@ -133,19 +133,7 @@ export function UploadForm() {
                     onClick={clearFile}
                     className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
                   >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
                 <p className="text-sm text-muted-foreground">{file?.name}</p>
@@ -153,7 +141,7 @@ export function UploadForm() {
             ) : (
               <label htmlFor="file-input" className="cursor-pointer block">
                 <div className="flex justify-center mb-4">
-                  <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                  <ImagePlus className="h-12 w-12 text-muted-foreground" />
                 </div>
                 <div className="text-foreground font-medium mb-2">
                   Click to upload or drag and drop
@@ -173,30 +161,12 @@ export function UploadForm() {
             >
               {isUploading ? (
                 <>
-                  <svg
-                    className="animate-spin h-4 w-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Analyzing...
                 </>
               ) : (
                 <>
-                  <AnalyzeIcon className="h-4 w-4 mr-2" />
+                  <ClipboardCheck className="h-4 w-4 mr-2" />
                   Upload & Analyze
                 </>
               )}
@@ -228,7 +198,7 @@ export function UploadTips() {
         <ul className="space-y-3 text-sm text-muted-foreground">
           {tips.map((tip, index) => (
             <li key={index} className="flex items-start gap-3">
-              <CheckIcon className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+              <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
               {tip}
             </li>
           ))}

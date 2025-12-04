@@ -1,9 +1,9 @@
 import Link from "next/link";
+import { LogOut } from "lucide-react";
 import { signOut } from "@/lib/auth";
 import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { DashboardNav, DashboardMobileNav } from "./nav";
-import { LogoutIcon } from "./icons";
 
 export function DashboardHeader() {
   return (
@@ -28,7 +28,7 @@ export function DashboardHeader() {
             }}
           >
             <Button type="submit" variant="outline" size="sm">
-              <LogoutIcon className="h-4 w-4 md:mr-2" />
+              <LogOut className="h-4 w-4 md:mr-2" />
               <span className="hidden md:inline">Logout</span>
             </Button>
           </form>

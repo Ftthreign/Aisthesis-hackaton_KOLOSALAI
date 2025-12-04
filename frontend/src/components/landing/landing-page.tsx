@@ -4,7 +4,6 @@ import { Session } from "next-auth";
 import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Button } from "@/components/ui/button";
 import FoodIcon from "@/components/ui/FoodIcon";
-import { GoogleIcon } from "../icon/google-icon";
 
 interface LandingPageProps {
   session: Session | null;

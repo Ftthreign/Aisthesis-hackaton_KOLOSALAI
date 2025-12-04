@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Home, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { HomeIcon, UploadIcon } from "./icons";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -16,12 +16,12 @@ const navItems: NavItem[] = [
   {
     href: "/dashboard",
     label: "Home",
-    icon: <HomeIcon className="h-4 w-4" />,
+    icon: <Home className="h-4 w-4" />,
   },
   {
     href: "/dashboard/upload",
     label: "Upload",
-    icon: <UploadIcon className="h-4 w-4" />,
+    icon: <Upload className="h-4 w-4" />,
   },
 ];
 
@@ -63,10 +63,8 @@ export function DashboardMobileNav() {
             variant={isActive ? "secondary" : "ghost"}
             size="icon"
           >
-            <Link href={item.href}>
-              <span className={cn("h-5 w-5", isActive && "text-primary")}>
-                {item.icon}
-              </span>
+            <Link href={item.href} className={cn(isActive && "text-primary")}>
+              {item.icon}
             </Link>
           </Button>
         );

@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { UploadIcon } from "./icons";
 
 interface EmptyStateProps {
   title?: string;
@@ -29,7 +29,7 @@ export function EmptyState({
           </p>
           <Button asChild size="lg">
             <Link href={actionHref}>
-              <UploadIcon className="h-5 w-5 mr-2" />
+              <Upload className="h-5 w-5 mr-2" />
               {actionLabel}
             </Link>
           </Button>
