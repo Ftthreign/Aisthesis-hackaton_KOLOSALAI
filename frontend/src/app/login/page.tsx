@@ -9,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ModeToggle } from "@/components/theme/ModeToggle";
-import { GoogleIcon } from "@/components/icon/GoogleIcon";
+import { ModeToggle } from "@/components/theme/mode-toggle";
+import { GoogleIcon } from "@/components/icon/google-icon";
 
 export default async function LoginPage({
   searchParams,

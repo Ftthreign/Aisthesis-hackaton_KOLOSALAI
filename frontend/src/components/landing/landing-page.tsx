@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { signIn } from "@/lib/auth";
 import { Session } from "next-auth";
-import { ModeToggle } from "@/components/theme/ModeToggle";
+import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Button } from "@/components/ui/button";
 import FoodIcon from "@/components/ui/FoodIcon";
-import { GoogleIcon } from "../icon/GoogleIcon";
+import { GoogleIcon } from "../icon/google-icon";
 
 interface LandingPageProps {
   session: Session | null;
@@ -49,13 +49,13 @@ export function LandingPage({ session }: LandingPageProps) {
             <div className="pt-4">
               {session ? (
                 <Button asChild size="lg" className="h-14 px-8 text-lg">
-                  <Link href="/upload">Unggah Foto Kamu!</Link>
+                  <Link href="/dashboard/upload">Unggah Foto Kamu!</Link>
                 </Button>
               ) : (
                 <form
                   action={async () => {
                     "use server";
-                    await signIn("google", { redirectTo: "/upload" });
+                    await signIn("google", { redirectTo: "/dashboard/upload" });
                   }}
                 >
                   <Button type="submit" size="lg" className="h-14 px-8 text-lg">
