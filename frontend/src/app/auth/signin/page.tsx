@@ -1,15 +1,16 @@
-import Link from "next/link"
-import { auth } from "@/auth"
-import { redirect } from "next/navigation"
-import GoogleSignInButton from "@/components/auth/GoogleSignInButton"
-import FoodIcon from "@/components/ui/FoodIcon"
+import Link from "next/link";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import FoodIcon from "@/components/ui/FoodIcon";
+import { ModeToggle } from "@/components/theme/ModeToggle";
 
 export default async function SignInPage() {
-  const session = await auth()
+  const session = await auth();
 
   // If already signed in, redirect to dashboard
   if (session) {
-    redirect("/dashboard")
+    redirect("/dashboard");
   }
 
   return (
@@ -17,7 +18,7 @@ export default async function SignInPage() {
       <div className="container mx-auto px-4 py-8 md:py-16">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <header className="mb-8 md:mb-12">
+          <header className="mb-8 md:mb-12 flex justify-between items-center">
             <Link
               href="/"
               className="inline-flex items-center gap-2 text-2xl font-bold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
@@ -25,6 +26,7 @@ export default async function SignInPage() {
               <FoodIcon type="dish" className="w-8 h-8" />
               <span>Aisthesis</span>
             </Link>
+            <ModeToggle />
           </header>
 
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
@@ -206,6 +208,5 @@ export default async function SignInPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

@@ -1,12 +1,13 @@
-import { auth, signOut } from "@/auth"
-import { redirect } from "next/navigation"
-import Link from "next/link"
+import { auth, signOut } from "@/auth";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { ModeToggle } from "@/components/theme/ModeToggle";
 
 export default async function DashboardPage() {
-  const session = await auth()
+  const session = await auth();
 
   if (!session) {
-    redirect("/auth/signin")
+    redirect("/auth/signin");
   }
 
   return (
@@ -22,6 +23,7 @@ export default async function DashboardPage() {
               Aisthesis
             </Link>
             <div className="flex gap-4 items-center">
+              <ModeToggle />
               <Link
                 href="/upload"
                 className="px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100 transition-colors"
@@ -30,8 +32,8 @@ export default async function DashboardPage() {
               </Link>
               <form
                 action={async () => {
-                  "use server"
-                  await signOut()
+                  "use server";
+                  await signOut();
                 }}
               >
                 <button
@@ -75,6 +77,5 @@ export default async function DashboardPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

@@ -1,12 +1,13 @@
-import { auth, signIn } from "@/auth"
-import { redirect } from "next/navigation"
-import Link from "next/link"
+import { auth, signIn } from "@/auth";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { ModeToggle } from "@/components/theme/ModeToggle";
 
 export default async function UploadPage() {
-  const session = await auth()
+  const session = await auth();
 
   if (!session) {
-    redirect("/auth/signin")
+    redirect("/auth/signin");
   }
 
   return (
@@ -21,12 +22,15 @@ export default async function UploadPage() {
             >
               Aisthesis
             </Link>
-            <Link
-              href="/dashboard"
-              className="px-4 py-2 text-zinc-900 dark:text-zinc-50 hover:underline"
-            >
-              Dashboard
-            </Link>
+            <div className="flex gap-4 items-center">
+              <ModeToggle />
+              <Link
+                href="/dashboard"
+                className="px-4 py-2 text-zinc-900 dark:text-zinc-50 hover:underline"
+              >
+                Dashboard
+              </Link>
+            </div>
           </header>
 
           {/* Upload Section */}
@@ -41,9 +45,9 @@ export default async function UploadPage() {
             {/* Upload Form */}
             <form
               action={async (formData: FormData) => {
-                "use server"
+                "use server";
                 // TODO: Implement file upload logic
-                console.log("File upload:", formData.get("file"))
+                console.log("File upload:", formData.get("file"));
               }}
               className="space-y-6"
             >
@@ -56,10 +60,7 @@ export default async function UploadPage() {
                   id="file-input"
                   required
                 />
-                <label
-                  htmlFor="file-input"
-                  className="cursor-pointer block"
-                >
+                <label htmlFor="file-input" className="cursor-pointer block">
                   <div className="text-5xl mb-4">📁</div>
                   <div className="text-zinc-900 dark:text-zinc-50 font-medium mb-2">
                     Click to upload or drag and drop
@@ -89,6 +90,5 @@ export default async function UploadPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-
