@@ -44,86 +44,96 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  pages: {
-    signIn: "/dashboard",
-    signOut: "/",
+  session: {
+    strategy: "jwt",
   },
   callbacks: {
+    // FIXME: temporarily bypassing backend authentication until backend fully ready
+    async signIn({ user, account, profile }) {
+      // const idToken = account?.id_token;
+
+      // if (!idToken) {
+      //   console.error("No id_token from provider");
+      //   return false;
+      // }
+
+      return true; // TODO: bypass for now
+    },
     async jwt({ token, account, user }) {
       // Initial sign in - exchange Google ID token with backend
-      if (account && account.id_token) {
-        try {
-          const response = await fetch(`${API_BASE_URL}/auth/google`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ id_token: account.id_token }),
-          });
+      // if (account && account.id_token) {
+      //   try {
+      //     const response = await fetch(`${API_BASE_URL}/auth/google`, {
+      //       method: "POST",
+      //       headers: {
+      //         "Content-Type": "application/json",
+      //       },
+      //       body: JSON.stringify({ id_token: account.id_token }),
+      //     });
 
-          if (!response.ok) {
-            throw new Error("Failed to authenticate with backend");
-          }
+      //     if (!response.ok) {
+      //       throw new Error("Failed to authenticate with backend");
+      //     }
 
-          const backendTokens = await response.json();
+      //     const backendTokens = await response.json();
 
-          token.accessToken = backendTokens.access_token;
-          token.refreshToken = backendTokens.refresh_token;
-          token.accessTokenExpires = Date.now() + 30 * 60 * 1000; // 30 minutes
-          token.id = user?.id;
-          token.email = user?.email;
-          token.name = user?.name;
-          token.picture = user?.image;
+      //     token.accessToken = backendTokens.access_token;
+      //     token.refreshToken = backendTokens.refresh_token;
+      //     token.accessTokenExpires = Date.now() + 30 * 60 * 1000; // 30 minutes
+      //     token.id = user?.id;
+      //     token.email = user?.email;
+      //     token.name = user?.name;
+      //     token.picture = user?.image;
 
-          return token;
-        } catch (error) {
-          console.error("Error exchanging token with backend:", error);
-          return { ...token, error: "BackendAuthError" };
-        }
-      }
+      //     return token;
+      //   } catch (error) {
+      //     console.error("Error exchanging token with backend:", error);
+      //     return { ...token, error: "BackendAuthError" };
+      //   }
+      // }
 
-      // Return token if access token has not expired
-      if (
-        token.accessTokenExpires &&
-        Date.now() < (token.accessTokenExpires as number)
-      ) {
-        return token;
-      }
+      // // Return token if access token has not expired
+      // if (
+      //   token.accessTokenExpires &&
+      //   Date.now() < (token.accessTokenExpires as number)
+      // ) {
+      //   return token;
+      // }
 
-      // Access token has expired, try to refresh it
-      if (token.refreshToken) {
-        const refreshedTokens = await refreshAccessToken(
-          token.refreshToken as string
-        );
-        if (refreshedTokens) {
-          return {
-            ...token,
-            accessToken: refreshedTokens.accessToken,
-            refreshToken: refreshedTokens.refreshToken,
-            accessTokenExpires: refreshedTokens.accessTokenExpires,
-          };
-        }
-      }
+      // // Access token has expired, try to refresh it
+      // if (token.refreshToken) {
+      //   const refreshedTokens = await refreshAccessToken(
+      //     token.refreshToken as string
+      //   );
+      //   if (refreshedTokens) {
+      //     return {
+      //       ...token,
+      //       accessToken: refreshedTokens.accessToken,
+      //       refreshToken: refreshedTokens.refreshToken,
+      //       accessTokenExpires: refreshedTokens.accessTokenExpires,
+      //     };
+      //   }
+      // }
 
-      // Unable to refresh, return token with error
-      return { ...token, error: "RefreshAccessTokenError" };
+      // // Unable to refresh, return token with error
+      // return { ...token, error: "RefreshAccessTokenError" };
+      return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.accessToken = token.accessToken as string;
-        session.refreshToken = token.refreshToken as string;
-        session.error = token.error as string | undefined;
-      }
+      // if (session.user) {
+      //   session.user.id = token.id as string;
+      //   session.accessToken = token.accessToken as string;
+      //   session.refreshToken = token.refreshToken as string;
+      //   session.error = token.error as string | undefined;
+      // }
       return session;
     },
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       // Allows callback URLs on the same origin
-      if (new URL(url).origin === baseUrl) return url;
-      // Default redirect to dashboard
-      return `${baseUrl}/dashboard`;
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
   },
 });

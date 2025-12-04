@@ -6,7 +6,7 @@ export default auth((req: NextAuthRequest) => {
   const { pathname } = req.nextUrl;
   const isLoggedIn = !!req.auth;
 
-  const publicRoutes = ["/"];
+  const publicRoutes = ["/", "/login"];
   const isPublicRoute = publicRoutes.some((route) => pathname === route);
   const isApiRoute = pathname.startsWith("/api");
 
@@ -15,9 +15,12 @@ export default auth((req: NextAuthRequest) => {
   }
 
   if (!isLoggedIn) {
-    const signInUrl = new URL("/", req.url);
-    signInUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(signInUrl);
+    const loginUrl = new URL("/login", req.nextUrl.origin);
+    loginUrl.searchParams.set(
+      "callbackUrl",
+      req.nextUrl.pathname + req.nextUrl.search
+    );
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
