@@ -37,6 +37,10 @@ write_files:
       POSTGRES_PASSWORD=${db_password}
       POSTGRES_DB=aisthesis
 
+      # Redis
+      REDIS_HOST=redis
+      REDIS_PORT=6379
+
       # JWT & Auth
       SECRET_KEY=${jwt_secret}
       ALGORITHM=HS256
@@ -46,6 +50,11 @@ write_files:
       # Google OAuth
       GOOGLE_CLIENT_ID=${google_client_id}
       GOOGLE_CLIENT_SECRET=${google_client_secret}
+
+      # AI APIs
+      GOOGLE_API_KEY=${google_api_key}
+      GEMINI_VISION_MODEL=gemini-2.0-flash-exp
+      GEMINI_LLM_MODEL=gemini-2.0-flash-exp
 
       # NextAuth (Frontend)
       NEXTAUTH_SECRET=${nextauth_secret}
@@ -84,9 +93,35 @@ write_files:
             - "127.0.0.1:8000:8000"
           env_file:
             - .env
+          volumes:
+            - uploads_data:/app/uploads
           depends_on:
             db:
               condition: service_healthy
+            redis:
+              condition: service_started
+          networks:
+            - aisthesis
+
+        worker:
+          image: ${registry_url}/backend:latest
+          restart: unless-stopped
+          command: arq app.worker.WorkerSettings
+          env_file:
+            - .env
+          volumes:
+            - uploads_data:/app/uploads
+          depends_on:
+            db:
+              condition: service_healthy
+            redis:
+              condition: service_started
+          networks:
+            - aisthesis
+
+        redis:
+          image: redis:alpine
+          restart: unless-stopped
           networks:
             - aisthesis
 
@@ -98,7 +133,7 @@ write_files:
           volumes:
             - postgres_data:/var/lib/postgresql/data
           healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+            test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
             interval: 5s
             timeout: 5s
             retries: 5
@@ -107,6 +142,7 @@ write_files:
 
       volumes:
         postgres_data:
+        uploads_data:
 
       networks:
         aisthesis:

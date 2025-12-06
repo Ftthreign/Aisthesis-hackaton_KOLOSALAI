@@ -68,6 +68,8 @@ Get current user profile. Requires authentication.
 
 Upload product image for AI analysis. Requires authentication.
 
+Analysis is processed asynchronously by a background worker. Use GET /analysis/{id} to poll for results.
+
 **Request:** `multipart/form-data`
 
 | Field | Type | Required |

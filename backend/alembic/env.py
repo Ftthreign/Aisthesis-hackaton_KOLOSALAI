@@ -22,8 +22,9 @@ print("=============================")
 # Alembic config
 config = context.config
 
-# Gunakan URL sync (psycopg2)
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL_SYNC)
+# Gunakan URL sync (psycopg2) - escape % for configparser
+db_url = settings.DATABASE_URL_SYNC.replace("%", "%%")
+config.set_main_option("sqlalchemy.url", db_url)
 
 # Logging
 if config.config_file_name is not None:

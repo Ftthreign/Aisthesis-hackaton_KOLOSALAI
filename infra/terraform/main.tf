@@ -42,6 +42,7 @@ resource "digitalocean_droplet" "aisthesis" {
     google_client_id     = var.google_client_id
     google_client_secret = var.google_client_secret
     nextauth_secret      = var.nextauth_secret
+    google_api_key       = var.google_api_key
   })
 
   connection {

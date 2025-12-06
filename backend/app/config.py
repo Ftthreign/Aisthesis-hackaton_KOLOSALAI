@@ -18,9 +18,14 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     GOOGLE_CLIENT_ID: str
-    GOOGLE_API_KEY: str | None = None
+    GOOGLE_CLIENT_SECRET: str
+    GOOGLE_API_KEY: str
     GEMINI_VISION_MODEL: str = "gemini-2.0-flash-exp"
     GEMINI_LLM_MODEL: str = "gemini-2.0-flash-exp"
+
+    # Redis Configuration
+    REDIS_HOST: str = "redis"
+    REDIS_PORT: int = 6379
 
     # Stored as comma-separated strings in env
     ALLOWED_ORIGINS_STR: str = ""

@@ -57,3 +57,7 @@ urllib3==2.5.0
 uvicorn==0.38.0
 virtualenv==20.35.4
 google-generativeai
+
+# Async Redis Queue (Worker)
+arq==0.25.0
+redis>=5.0.0

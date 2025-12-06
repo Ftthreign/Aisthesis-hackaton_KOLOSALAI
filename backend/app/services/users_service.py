@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from jose import jwt
 from google.oauth2 import id_token
 from google.auth.transport import requests
+import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -10,6 +11,8 @@ from sqlalchemy import select
 from app.config import settings
 from app.models.user import User
 from app.models.oauth import OAuthAccount
+
+logger = logging.getLogger(__name__)
 
 class UserService:
     @staticmethod
@@ -37,6 +40,7 @@ class UserService:
         user = result.scalar_one_or_none()
 
         if not user:
+            logger.info(f"Creating new user: {payload.email}")
             user = User(
                 email=payload.email,
                 name=payload.name,
@@ -46,6 +50,8 @@ class UserService:
             db.add(user)
 
             await db.flush()
+        else:
+            logger.info(f"Existing user logged in: {payload.email}")
 
         result = await db.execute(
             select(OAuthAccount).where(
@@ -57,6 +63,7 @@ class UserService:
         oauth = result.scalar_one_or_none()
 
         if not oauth:
+            logger.info(f"Creating OAuth account for user: {user.email}")
             oauth= OAuthAccount(
                 user_id=user.id,
                 provider="google",
