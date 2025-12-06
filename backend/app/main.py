@@ -2,8 +2,11 @@ from fastapi import FastAPI
 
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers.auth_router import router as auth_router
+from app.routers.analysis_router import router as analysis_router
 
 from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+
 
 app = FastAPI(
     title="Aisthesis API",
@@ -15,6 +18,13 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
+BASE_DIR = Path(__file__).resolve().parent
+UPLOAD_DIR = BASE_DIR / "app" / "uploads"
+
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,6 +33,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
 app.include_router(auth_router)
+app.include_router(analysis_router)
