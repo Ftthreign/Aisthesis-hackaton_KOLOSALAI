@@ -1,0 +1,35 @@
+# Terraform state and sensitive files
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# Backup files
+*.backup
+*.bak
+
+# SSH keys
+*.pem
+*.key
+id_rsa*
+
+# OS files
+.DS_Store
+Thumbs.db
+.directory

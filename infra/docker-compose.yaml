@@ -26,6 +26,14 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
   backend:
     build:
@@ -43,12 +51,26 @@ services:
       redis:
         condition: service_started
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '1.0'
+          memory: 512M
 
   worker:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    command: arq app.worker.WorkerSettings --watch app
+    command: arq app.worker.WorkerSettings
     env_file:
       - .env
     volumes:
@@ -59,12 +81,28 @@ services:
       redis:
         condition: service_started
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
 
   redis:
     image: redis:alpine
     expose:
       - "6379"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
 
   db:
     image: postgres:16-alpine
@@ -80,6 +118,14 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
 volumes:
   postgres_data:
