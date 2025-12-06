@@ -11,15 +11,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ImagePlus, ClipboardCheck, Check, X, Loader2 } from "lucide-react";
+import {
+  ImagePlus,
+  ClipboardCheck,
+  Check,
+  X,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUploadAnalysis } from "@/lib/api/hooks";
 
 export function UploadForm() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+
+  const uploadAnalysis = useUploadAnalysis();
 
   const handleFileChange = useCallback((selectedFile: File | null) => {
     if (selectedFile) {
@@ -63,28 +72,20 @@ export function UploadForm() {
     e.preventDefault();
     if (!file) return;
 
-    setIsUploading(true);
     try {
-      // TODO: Implement actual upload logic with API
-      const formData = new FormData();
-      formData.append("file", file);
-      console.log("Uploading file:", file.name);
-
-      // Simulate upload delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Redirect to dashboard after successful upload
-      router.push("/dashboard");
+      const result = await uploadAnalysis.mutateAsync(file);
+      // Redirect to the analysis result page after successful upload
+      router.push(`/dashboard/${result.id}`);
     } catch (error) {
       console.error("Upload failed:", error);
-    } finally {
-      setIsUploading(false);
+      // Error is handled by the mutation state
     }
   };
 
   const clearFile = () => {
     setFile(null);
     setPreview(null);
+    uploadAnalysis.reset();
   };
 
   return (
@@ -98,13 +99,46 @@ export function UploadForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Error Display */}
+          {uploadAnalysis.isError && (
+            <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-destructive">
+                  Upload failed
+                </p>
+                <p className="text-sm text-destructive/80">
+                  {uploadAnalysis.error?.message ||
+                    "An error occurred while analyzing your image. Please try again."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Upload Progress Indicator */}
+          {uploadAnalysis.isPending && (
+            <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+              <Loader2 className="h-5 w-5 text-primary animate-spin" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">
+                  Analyzing your image...
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  This may take a moment. Our AI is generating insights for your
+                  product.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div
             className={cn(
               "border-2 border-dashed rounded-lg p-12 text-center transition-colors cursor-pointer",
               isDragging
                 ? "border-primary bg-primary/5"
                 : "border-border hover:border-primary/50",
-              preview && "p-4"
+              preview && "p-4",
+              uploadAnalysis.isPending && "opacity-50 pointer-events-none",
             )}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -117,6 +151,7 @@ export function UploadForm() {
               className="hidden"
               id="file-input"
               onChange={handleInputChange}
+              disabled={uploadAnalysis.isPending}
             />
 
             {preview ? (
@@ -128,13 +163,15 @@ export function UploadForm() {
                     alt="Preview"
                     className="max-h-64 rounded-lg mx-auto"
                   />
-                  <button
-                    type="button"
-                    onClick={clearFile}
-                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+                  {!uploadAnalysis.isPending && (
+                    <button
+                      type="button"
+                      onClick={clearFile}
+                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground">{file?.name}</p>
               </div>
@@ -157,9 +194,9 @@ export function UploadForm() {
             <Button
               type="submit"
               className="flex-1"
-              disabled={!file || isUploading}
+              disabled={!file || uploadAnalysis.isPending}
             >
-              {isUploading ? (
+              {uploadAnalysis.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Analyzing...
@@ -171,7 +208,11 @@ export function UploadForm() {
                 </>
               )}
             </Button>
-            <Button asChild variant="outline">
+            <Button
+              asChild
+              variant="outline"
+              disabled={uploadAnalysis.isPending}
+            >
               <Link href="/dashboard">Cancel</Link>
             </Button>
           </div>
