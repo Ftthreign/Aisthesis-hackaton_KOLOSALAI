@@ -7,7 +7,7 @@ from io import BytesIO
 
 from app.database import get_db
 from app.core.auth import get_current_user
-from app.schemas.analysis import AnalysisResponse
+from app.schemas.analysis import AnalysisResponse, AnalysisData
 from app.models.analysis.analysis import Analysis
 from app.services.analysis_service import AnalysisService
 
@@ -60,4 +60,4 @@ async def create_analysis(
         context=context,
     )
 
-    return updated_analysis
+    return AnalysisResponse(data=AnalysisData.model_validate(updated_analysis))

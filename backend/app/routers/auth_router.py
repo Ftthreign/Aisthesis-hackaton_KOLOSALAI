@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.services.users_service import UserService
 from app.models.user import User as UserModel
-from app.schemas.auth import GoogleAuthRequest, TokenResponse
-from app.schemas.user import UserResponse
+from app.schemas.auth import GoogleAuthRequest, TokenResponse, TokenData
+from app.schemas.user import UserResponse, UserData
 
 from app.core.auth import get_current_user
 
@@ -31,11 +31,13 @@ async def google_login(
     refresh_token = UserService.create_refresh_token({"sub": str(user.id)})
 
     return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
+        data=TokenData(
+            access_token=access_token,
+            refresh_token=refresh_token,
+        )
     )
 
 
 @router.get("/profile", response_model=UserResponse)
 async def get_profile(current_user = Depends(get_current_user)):
-    return current_user
+    return UserResponse(data=UserData.model_validate(current_user))

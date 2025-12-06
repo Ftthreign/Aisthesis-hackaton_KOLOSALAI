@@ -3,6 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from . import DataResponse
 from .analysis_action_plan import AnalysisActionPlanResponse
 from .analysis_branding import AnalysisBrandThemeResponse
 from .analysis_marketplace import AnalysisMarketplaceResponse
@@ -21,7 +22,7 @@ class AnalysisBase(BaseModel):
     vision_result: VisionResult | None = None
 
 
-class AnalysisResponse(AnalysisBase):
+class AnalysisData(AnalysisBase):
     id: UUID
     created_at: datetime
     updated_at: datetime
@@ -37,7 +38,12 @@ class AnalysisResponse(AnalysisBase):
     action_plan: AnalysisActionPlanResponse | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+
+class AnalysisResponse(DataResponse[AnalysisData]):
+    """Wrapped analysis response."""
+    pass
 
 
 class AnalysisListItem(BaseModel):
@@ -46,4 +52,4 @@ class AnalysisListItem(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
