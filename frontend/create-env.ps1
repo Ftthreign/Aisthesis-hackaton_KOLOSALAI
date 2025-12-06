@@ -33,4 +33,3 @@ Write-Host "  - GOOGLE_CLIENT_ID" -ForegroundColor Yellow
 Write-Host "  - GOOGLE_CLIENT_SECRET" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Dapatkan credentials dari: https://console.cloud.google.com/" -ForegroundColor Cyan
-
