@@ -5,6 +5,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 import sys
+import time
 
 from app.config import settings
 from app.database import get_db
@@ -61,6 +62,21 @@ app.add_middleware(
     max_age=600,  # Cache preflight requests for 10 minutes
 )
 
+# Request timing middleware (for performance monitoring)
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = f"{process_time:.3f}"
+    
+    if process_time > 1.0:  # > 1 second
+        logger.warning(f"  SLOW REQUEST: {request.method} {request.url.path} took {process_time:.2f}s")
+    else:
+        logger.info(f"{request.method} {request.url.path} - {process_time:.3f}s")
+    
+    return response
+
 # Security headers middleware
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
@@ -84,9 +100,6 @@ async def validate_config():
     
     if not settings.GOOGLE_API_KEY:
         errors.append("GOOGLE_API_KEY must be set")
-    
-    if not settings.SECRET_KEY:
-        errors.append("SECRET_KEY must be set")
     
     if not settings.DATABASE_URL:
         errors.append("DATABASE_URL must be set")

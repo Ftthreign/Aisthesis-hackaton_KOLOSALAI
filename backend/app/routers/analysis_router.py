@@ -7,11 +7,14 @@ from PIL import Image
 from io import BytesIO
 import logging
 
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+
 from arq import create_pool
 from arq.connections import RedisSettings
 
 from app.config import settings
-from app.database import get_db
+from app.database import get_db, AsyncSessionLocal  # Import AsyncSessionLocal
 from app.core.auth import get_current_user
 from app.schemas.analysis import (
     AnalysisCreateResponse,
@@ -35,6 +38,9 @@ async def get_redis_pool():
         RedisSettings(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
+            conn_timeout=10,
+            conn_retries=3,
+            conn_retry_delay=1,
         )
     )
 
@@ -79,7 +85,6 @@ async def create_analysis(
         try:
             image_bytes = await file.read()
             
-            # Double-check size after reading
             if len(image_bytes) > settings.MAX_UPLOAD_SIZE:
                 raise HTTPException(
                     status_code=413,
@@ -87,9 +92,7 @@ async def create_analysis(
                 )
             
             image = Image.open(BytesIO(image_bytes))
-            image.verify()  # Verify it's actually a valid image
-            
-            # Re-open after verify (verify closes the file)
+            image.verify()
             image = Image.open(BytesIO(image_bytes))
         except Exception as e:
             logger.warning(f"Invalid image upload attempt: {e}")
@@ -121,36 +124,90 @@ async def create_analysis(
         await db.commit()
         await db.refresh(analysis)
         
-        logger.info(f"Created analysis record {analysis.id} for user {user.id}")
+        analysis_id = analysis.id  # Store ID before session closes
+        analysis_status = analysis.status
+        
+        logger.info(f"Created analysis record {analysis_id} for user {user.id}")
 
-        # 7. Enqueue job to Redis with proper cleanup
-        try:
-            redis = await get_redis_pool()
-            await redis.enqueue_job(
-                "process_analysis",
-                str(analysis.id),
-                context,
-            )
-            logger.info(f"Enqueued analysis job {analysis.id} to Redis")
-        finally:
-            if redis:
-                await redis.close()
+        if settings.ENVIRONMENT == "development":
+            logger.warning(f"⚠️  DEV MODE: Processing analysis {analysis_id} without queue")
+            
+            import asyncio
+            from app.services.analysis_service import AnalysisService
+            import google.generativeai as genai
+            
+            # Load and upload image to Gemini
+            genai.configure(api_key=settings.GOOGLE_API_KEY)
+            gemini_image = genai.upload_file(str(save_path))
+            
+            # Process in background with NEW session
+            async def process_in_background():
+                # Create a NEW database session for background task
+                async with AsyncSessionLocal() as bg_session:
+                    try:
+                        # Fetch analysis in new session
+                        result = await bg_session.execute(
+                            select(Analysis).where(Analysis.id == analysis_id)
+                        )
+                        bg_analysis = result.scalar_one_or_none()
+                        
+                        if not bg_analysis:
+                            logger.error(f"Analysis {analysis_id} not found in background task")
+                            return
+                        
+                        bg_analysis.status = AnalysisStatus.PROCESSING.value
+                        await bg_session.commit()
+                        
+                        await AnalysisService.analyze_product(
+                            bg_session, 
+                            bg_analysis, 
+                            [gemini_image], 
+                            context
+                        )
+                        logger.info(f"✅ Background analysis completed for {analysis_id}")
+                    except Exception as e:
+                        logger.error(f"❌ Background analysis failed for {analysis_id}: {e}")
+                        try:
+                            # Fetch again to update error status
+                            result = await bg_session.execute(
+                                select(Analysis).where(Analysis.id == analysis_id)
+                            )
+                            bg_analysis = result.scalar_one_or_none()
+                            if bg_analysis:
+                                bg_analysis.status = AnalysisStatus.FAILED.value
+                                bg_analysis.error = str(e)
+                                await bg_session.commit()
+                        except Exception as commit_error:
+                            logger.error(f"Failed to update error status: {commit_error}")
+            
+            asyncio.create_task(process_in_background())
+        else:
+            # Production: Use Redis queue
+            try:
+                redis = await get_redis_pool()
+                await redis.enqueue_job(
+                    "process_analysis",
+                    str(analysis_id),
+                    context,
+                )
+                logger.info(f"Enqueued analysis job {analysis_id} to Redis")
+            finally:
+                if redis:
+                    await redis.close()
 
         # 8. Return 202 Accepted with analysis ID
         return AnalysisCreateResponse(
             data=AnalysisCreateData(
-                id=analysis.id,
-                status=analysis.status,
+                id=analysis_id,
+                status=analysis_status,
             )
         )
     
     except HTTPException:
-        # Re-raise HTTP exceptions as-is
         if analysis:
             await db.rollback()
         raise
     except Exception as e:
-        # Handle unexpected errors
         logger.error(f"Unexpected error creating analysis: {e}", exc_info=True)
         if analysis:
             await db.rollback()
@@ -171,7 +228,26 @@ async def get_analysis(
 
     Returns current status and full result when completed.
     """
-    analysis = await db.get(Analysis, analysis_id)
+    
+    # Eager load all relationships to avoid MissingGreenlet error
+    stmt = (
+        select(Analysis)
+        .where(Analysis.id == analysis_id)
+        .options(
+            selectinload(Analysis.story),
+            selectinload(Analysis.taste),
+            selectinload(Analysis.pricing),
+            selectinload(Analysis.brand_theme),
+            selectinload(Analysis.seo),
+            selectinload(Analysis.marketplace),
+            selectinload(Analysis.persona),
+            selectinload(Analysis.packaging),
+            selectinload(Analysis.action_plan),
+        )
+    )
+    
+    result = await db.execute(stmt)
+    analysis = result.scalar_one_or_none()
 
     if not analysis:
         logger.warning(f"Analysis {analysis_id} not found")

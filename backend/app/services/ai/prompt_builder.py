@@ -221,6 +221,17 @@ class PromptFactory:
         )
 
     @staticmethod
+    def pricing(images, context=None, vision=None):
+        return (
+            PromptBuilder()
+            .system(PRICING_SYSTEM_PROMPT)
+            .with_images(images)
+            .with_context(context)
+            .with_vision(vision)
+            .with_instruction("Generate pricing recommendations in JSON.")
+        )
+
+    @staticmethod
     def vision(images):
         return (
             PromptBuilder()
