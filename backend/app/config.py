@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
     GOOGLE_API_KEY: str
-    GEMINI_VISION_MODEL: str = "gemini-2.0-flash-exp"
-    GEMINI_LLM_MODEL: str = "gemini-2.0-flash-exp"
+    GEMINI_VISION_MODEL: str = "gemini-1.5-flash-8b"
+    GEMINI_LLM_MODEL: str = "gemini-1.5-flash-8b"
 
     # Redis Configuration
     REDIS_HOST: str = "redis"

@@ -1,14 +1,3 @@
-"""
-Prompt Builder - Modular builder for all Gemini prompt types.
-
-This class ensures:
-- Centralized prompt definitions
-- Consistent formatting
-- Context injection
-- Vision result enrichment
-- Maintainability for future analysis modules
-"""
-
 from typing import Any, Optional
 
 from app.prompts import (
@@ -26,18 +15,17 @@ from app.prompts import (
 
 class PromptBuilder:
     """
-    A highly modular prompt construction class.
-
-    Usage:
-        prompt = (
-            PromptBuilder()
-            .system(STORY_SYSTEM_PROMPT)
-            .with_images(images)
-            .with_context(user_context)
-            .with_vision(vision_result)
-            .with_instruction("Write a story from the product visuals.")
-            .build()
-        )
+    Prompt builder dengan format baru Gemini 1.5:
+    
+    [
+        {
+            "role": "user",
+            "parts": [
+                <inline image>,
+                {"text": "<instruction>"},
+            ]
+        }
+    ]
     """
 
     def __init__(self):
@@ -47,90 +35,68 @@ class PromptBuilder:
         self.vision: dict[str, Any] | None = None
         self.extra_instruction: str | None = None
 
-    # -------------------------------------------------------------------------
-    # Builder Methods
-    # -------------------------------------------------------------------------
-
-    def system(self, prompt: str) -> "PromptBuilder":
-        """Attach system-level instructions."""
+    def system(self, prompt: str):
         self.system_prompt = prompt
         return self
 
-    def with_images(self, images: list[Any]) -> "PromptBuilder":
-        """Attach image objects to the prompt."""
+    def with_images(self, images: list[Any]):
         self.images.extend(images)
         return self
 
-    def with_context(self, context: Optional[str]) -> "PromptBuilder":
-        """Optional natural-language user context."""
+    def with_context(self, context: Optional[str]):
         if context:
             self.context = context
         return self
 
-    def with_vision(self, vision: Optional[dict[str, Any]]) -> "PromptBuilder":
-        """Provide structured vision analysis to guide LLM."""
+    def with_vision(self, vision: Optional[dict[str, Any]]):
         if vision:
             self.vision = vision
         return self
 
-    def with_instruction(self, instruction: str) -> "PromptBuilder":
-        """Human-readable guidance (append to user prompt)."""
+    def with_instruction(self, instruction: str):
         self.extra_instruction = instruction
         return self
 
-    # -------------------------------------------------------------------------
-    # Final Build Method
-    # -------------------------------------------------------------------------
-
     def build(self) -> list[Any]:
-        """
-        Build the final prompt in the correct Gemini format:
-
-        [
-            system_instruction,
-            <image1>,
-            <image2>,
-            ...,
-            "User prompt"
-        ]
-        """
-
         if not self.system_prompt:
             raise ValueError("system_prompt must be set before building the prompt.")
 
-        content = []
+        # Parts list
+        parts = []
 
-        # Start with system prompt
-        content.append(self.system_prompt)
+        # System instruction
+        parts.append({"text": self.system_prompt})
 
-        # Attach images
+        # Images (inline_data dict)
         for img in self.images:
-            content.append(img)
+            # img is already {"inline_data": {...}}
+            parts.append(img)
 
-        # Build user message
-        user_prompt = ""
+        # User text
+        user_text = ""
 
         if self.extra_instruction:
-            user_prompt += self.extra_instruction + "\n\n"
+            user_text += self.extra_instruction + "\n\n"
 
         if self.context:
-            user_prompt += f"Additional context: {self.context}\n\n"
+            user_text += f"Additional context: {self.context}\n\n"
 
         if self.vision:
-            user_prompt += "Vision analysis (optional helper data):\n"
-            user_prompt += f"{self.vision}\n\n"
+            user_text += "Vision analysis:\n"
+            user_text += f"{self.vision}\n\n"
 
-        content.append(user_prompt.strip())
+        parts.append({"text": user_text.strip() or ""})
 
-        return content
+        # Final format
+        return [
+            {
+                "role": "user",
+                "parts": parts
+            }
+        ]
 
-
-# -------------------------------------------------------------------------
-# Factory helpers for each analysis module
-# -------------------------------------------------------------------------
 
 class PromptFactory:
-    """Preconfigured prompt builders for each analysis module."""
 
     @staticmethod
     def story(images, context=None, vision=None):
