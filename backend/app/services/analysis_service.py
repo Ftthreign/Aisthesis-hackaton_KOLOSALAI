@@ -1,3 +1,5 @@
+import asyncio
+
 from app.schemas.analysis_story import AnalysisStoryResponse
 from app.schemas.analysis_branding import AnalysisBrandThemeResponse
 from app.schemas.analysis_taste import AnalysisTasteResponse
@@ -6,9 +8,9 @@ from app.services.ai.vision_service import VisionService
 from app.services.ai.prompt_builder import PromptFactory
 from app.services.ai.gemini_service import GeminiService
 from app.models.analysis.analysis import Analysis
-from app.models.analysis.analysis_story import AnalysisStory
-from app.models.analysis.analysis_branding import AnalysisBrandTheme
-from app.models.analysis.analysis_taste import AnalysisTaste
+from app.models.analysis.story import AnalysisStory
+from app.models.analysis.brand_theme import AnalysisBrandTheme
+from app.models.analysis.taste import AnalysisTaste
 
 class AnalysisService:
 

@@ -3,11 +3,14 @@ from google.api_core import exceptions as google_exceptions
 from pydantic import ValidationError
 
 from app.config import settings
+from app.schemas.analysis_person import AnalysisPersonaResponse
 from .exceptions import (
     GeminiAPIError,
     GeminiRateLimitError,
-    GeminiValidationError
+    GeminiValidationError,
 )
+
+genai.configure(api_key=settings.GOOGLE_API_KEY)
 
 
 PERSONA_SYSTEM_PROMPT = """

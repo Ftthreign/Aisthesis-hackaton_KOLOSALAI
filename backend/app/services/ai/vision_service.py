@@ -1,4 +1,6 @@
 import google.generativeai as genai
+
+from app.config import settings
 from app.schemas.vision import VisionResult
 from app.prompts.vision_prompt import VISION_SYSTEM_PROMPT
 from app.services.ai.prompt_builder import PromptFactory

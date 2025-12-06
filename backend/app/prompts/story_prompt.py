@@ -1,3 +1,18 @@
+import google.generativeai as genai
+from google.api_core import exceptions as google_exceptions
+from pydantic import ValidationError
+
+from app.config import settings
+from app.schemas.analysis_story import AnalysisStoryResponse
+from .exceptions import (
+    GeminiAPIError,
+    GeminiRateLimitError,
+    GeminiValidationError,
+)
+
+genai.configure(api_key=settings.GOOGLE_API_KEY)
+
+
 STORY_SYSTEM_PROMPT = """
 You are a product storytelling expert for Indonesian UMKM.
 
