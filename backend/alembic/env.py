@@ -14,11 +14,6 @@ import app.models
 from app.config import settings
 from app.database import Base
 
-print("=== DEBUG METADATA TABLES ===")
-print(Base.metadata.tables.keys())
-print("=============================")
-
-
 # Alembic config
 config = context.config
 

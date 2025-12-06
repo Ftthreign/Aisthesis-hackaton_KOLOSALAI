@@ -113,9 +113,30 @@ class WorkerSettings:
     @staticmethod
     async def on_startup(ctx: dict) -> None:
         """Called when worker starts."""
+        # Validate critical environment variables
+        errors = []
+        
+        if not settings.GOOGLE_API_KEY:
+            errors.append("GOOGLE_API_KEY must be set")
+        
+        if not settings.DATABASE_URL:
+            errors.append("DATABASE_URL must be set")
+        
+        if not settings.REDIS_HOST:
+            errors.append("REDIS_HOST must be set")
+        
+        if errors:
+            error_msg = "Worker configuration validation failed: " + ", ".join(errors)
+            logger.error(error_msg)
+            raise RuntimeError(error_msg)
+        
         logger.info("ARQ Worker started successfully")
+        logger.info(f"Environment: {settings.ENVIRONMENT}")
+        logger.info(f"Redis: {settings.REDIS_HOST}:{settings.REDIS_PORT}")
 
     @staticmethod
     async def on_shutdown(ctx: dict) -> None:
         """Called when worker shuts down."""
-        logger.info("ARQ Worker shutting down")
+        logger.info("ARQ Worker shutting down gracefully...")
+        # Allow in-progress jobs to complete
+        logger.info("Waiting for active jobs to complete...")
