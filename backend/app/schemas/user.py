@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr
 
+from . import DataResponse
+
 
 class UserBase(BaseModel):
     email: str
@@ -16,10 +18,15 @@ class UserCreate(BaseModel):
     name: str | None = None
 
 
-class UserResponse(UserBase):
+class UserData(UserBase):
     id: UUID
     created_at: datetime
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+
+class UserResponse(DataResponse[UserData]):
+    """Wrapped user response."""
+    pass

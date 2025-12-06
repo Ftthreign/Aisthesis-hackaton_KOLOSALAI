@@ -60,3 +60,4 @@ infra/terraform/*.auto.tfvars
 **/*.pem
 **/*.sh
 *.sh
+!backend/entrypoint.sh

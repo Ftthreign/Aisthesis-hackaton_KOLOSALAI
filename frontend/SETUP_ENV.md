@@ -43,4 +43,3 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 - File `.env.local` tidak akan di-commit ke git (sudah di-ignore)
 - Jangan share secret key ke publik
 - Untuk production, gunakan environment variables yang aman
-

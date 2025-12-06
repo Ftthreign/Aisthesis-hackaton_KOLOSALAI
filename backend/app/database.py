@@ -4,8 +4,9 @@ from collections.abc import AsyncGenerator
 
 from app.config import settings
 from app.models.base import Base
-from sqlalchemy import text
+from sqlalchemy import text, event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import Pool
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,20 @@ engine = create_async_engine(
     pool_recycle=3600,
     pool_timeout=30,
 )
+
+# Monitor pool events in production
+if settings.ENVIRONMENT == "production":
+    @event.listens_for(Pool, "connect")
+    def receive_connect(dbapi_conn, connection_record):
+        logger.info("Database connection established")
+
+    @event.listens_for(Pool, "checkout")
+    def receive_checkout(dbapi_conn, connection_record, connection_proxy):
+        logger.debug("Database connection checked out from pool")
+
+    @event.listens_for(Pool, "checkin")
+    def receive_checkin(dbapi_conn, connection_record):
+        logger.debug("Database connection returned to pool")
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
