@@ -62,3 +62,4 @@ infra/terraform/*.auto.tfvars
 *.sh
 
 Hackaton.md
+!backend/entrypoint.sh

@@ -29,12 +29,21 @@ COPY --from=deps /app/.venv /app/.venv
 # Copy application code
 COPY --chown=appuser:appgroup . .
 
+# Make entrypoint executable
+RUN chmod +x /app/entrypoint.sh
+
 # Set environment
 ENV PATH="/app/.venv/bin:$PATH"
+
+# Create uploads directory
+RUN mkdir -p /app/uploads && chown appuser:appgroup /app/uploads
 
 USER appuser
 
 EXPOSE 8000
 
-# Run the FastAPI app with uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use entrypoint to run migrations before starting
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# Default command: run the FastAPI app
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

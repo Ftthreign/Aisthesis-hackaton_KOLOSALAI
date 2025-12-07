@@ -10,8 +10,8 @@ class GeminiService:
     @staticmethod
     async def generate(prompt: list, schema):
         model = genai.GenerativeModel(
-            model_name=settings.GEMINI_LLM_MODEL,
-            system_instruction=prompt[0],  # system prompt otomatis di awal list
+            settings.GEMINI_LLM_MODEL,
+            system_instruction=prompt[0],
         )
 
         try:

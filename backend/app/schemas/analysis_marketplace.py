@@ -7,4 +7,4 @@ class AnalysisMarketplaceResponse(BaseModel):
     instagram_desc: str | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

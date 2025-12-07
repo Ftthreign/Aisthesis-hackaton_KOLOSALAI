@@ -84,3 +84,9 @@ variable "nextauth_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "google_api_key" {
+  description = "Google API Key for Gemini AI services"
+  type        = string
+  sensitive   = true
+}

@@ -11,4 +11,4 @@ class AnalysisPersonaResponse(BaseModel):
     pain_points: list[str] | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

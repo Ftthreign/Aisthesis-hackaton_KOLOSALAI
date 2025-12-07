@@ -6,4 +6,4 @@ class AnalysisPackagingResponse(BaseModel):
     material_recommendations: list[str] | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

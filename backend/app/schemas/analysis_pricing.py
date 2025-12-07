@@ -10,4 +10,4 @@ class AnalysisPricingResponse(BaseModel):
     best_posting_time: str | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

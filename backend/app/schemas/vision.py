@@ -15,4 +15,4 @@ class VisionResult(BaseModel):
     raw: dict[str, Any] | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
