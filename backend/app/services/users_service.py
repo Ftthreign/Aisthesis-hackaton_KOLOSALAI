@@ -18,20 +18,28 @@ class UserService:
     @staticmethod
     async def verify_google_token(id_token_str: str) -> GoogleTokenPayload:
         try:
+            logger.debug(f"Verifying Google token with client ID: {settings.GOOGLE_CLIENT_ID[:20]}...")
             payload = id_token.verify_oauth2_token(
                 id_token_str,
                 requests.Request(),
                 settings.GOOGLE_CLIENT_ID,
             )
 
+            logger.info(f"Token verified successfully for: {payload.get('email')}")
             return GoogleTokenPayload(
                 sub=payload['sub'],
                 email=payload['email'],
-                name=payload['name'],
-                picture=payload['picture'],
+                name=payload.get('name', payload.get('email',  '')),  # Fallback to email if name not present
+                picture=payload.get('picture', ''),  # Optional field
             )
+        except ValueError as e:
+            # Token validation errors (wrong audience, expired, etc.)
+            logger.error(f"Google token validation failed: {str(e)}")
+            raise ValueError(f"Invalid Google token: {str(e)}") from e
         except Exception as e:
-            raise ValueError("Invalid Google token") from e
+            # Other errors (network, parsing, etc.)
+            logger.error(f"Unexpected error verifying Google token: {type(e).__name__}: {str(e)}")
+            raise ValueError(f"Token verification error: {str(e)}") from e
 
 
     @staticmethod
