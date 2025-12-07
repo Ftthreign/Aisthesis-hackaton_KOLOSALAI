@@ -51,7 +51,9 @@ jobs:
 
       - name: Build and push frontend
         run: |
-          docker build -t ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/frontend:latest \
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
+            -t ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/frontend:latest \
             -t ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/frontend:${{ github.sha }} \
             ./frontend
           docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/frontend:latest
