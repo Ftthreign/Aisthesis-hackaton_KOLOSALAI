@@ -25,7 +25,6 @@ import {
   PersonaCard,
   PackagingCard,
   ActionPlanCard,
-  ExportButtons,
 } from "@/components/analysis";
 
 interface AnalysisPageProps {
@@ -222,7 +221,6 @@ export default function AnalysisPage({ params }: AnalysisPageProps) {
               </p>
             </div>
           </div>
-          <ExportButtons analysisId={analysis.id} filename={productName} />
         </div>
 
         {/* Analysis Content */}
@@ -271,13 +269,18 @@ export default function AnalysisPage({ params }: AnalysisPageProps) {
           )}
         </div>
 
-        {/* Bottom Export Section */}
+        {/* Bottom Navigation */}
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-muted-foreground text-sm">
-              Download your complete analysis report
-            </p>
-            <ExportButtons analysisId={analysis.id} filename={productName} />
+            <Button asChild variant="outline">
+              <Link href="/dashboard">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/dashboard/upload">New Analysis</Link>
+            </Button>
           </div>
         </div>
       </div>

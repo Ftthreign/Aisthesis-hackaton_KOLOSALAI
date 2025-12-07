@@ -1,7 +1,6 @@
 // Dummy data for development while backend is being built
 import type {
   AnalysisData,
-  HistoryItem,
   VisionResult,
   Story,
   Taste,
@@ -318,33 +317,6 @@ export const createDummyAnalysisData = (
 
 // Legacy function name for backwards compatibility
 export const createDummyAnalysisResponse = createDummyAnalysisData;
-
-export const dummyHistoryItems: HistoryItem[] = [
-  {
-    id: "analysis-001",
-    image_url: "/placeholder-coffee.jpg",
-    status: "COMPLETED",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-  },
-  {
-    id: "analysis-002",
-    image_url: "/placeholder-cake.jpg",
-    status: "COMPLETED",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
-  },
-  {
-    id: "analysis-003",
-    image_url: "/placeholder-noodle.jpg",
-    status: "PROCESSING",
-    created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
-  },
-  {
-    id: "analysis-004",
-    image_url: "/placeholder-sushi.jpg",
-    status: "FAILED",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(), // 1 week ago
-  },
-];
 
 // Simulate API delay
 export const simulateApiDelay = (ms: number = 1000): Promise<void> => {
