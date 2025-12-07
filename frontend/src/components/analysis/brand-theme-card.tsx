@@ -31,12 +31,26 @@ function ColorSwatch({ color, label }: ColorSwatchProps) {
         <p className="text-sm font-medium text-foreground">{label}</p>
         <p className="text-xs text-muted-foreground font-mono">{color}</p>
       </div>
-      <CopyButton text={color} size="icon" variant="ghost" className="ml-auto" />
+      <CopyButton
+        text={color}
+        size="icon"
+        variant="ghost"
+        className="ml-auto"
+      />
     </div>
   );
 }
 
 export function BrandThemeCard({ brandTheme }: BrandThemeCardProps) {
+  const primaryColor = brandTheme.primary_color ?? "";
+  const secondaryColor = brandTheme.secondary_color ?? "";
+  const accentColor = brandTheme.accent_color ?? "";
+  const tone = brandTheme.tone ?? "";
+  const styleSuggestions = brandTheme.style_suggestions ?? [];
+
+  const hasColors = primaryColor || secondaryColor || accentColor;
+  const hasContent = hasColors || tone || styleSuggestions.length > 0;
+
   return (
     <Card>
       <CardHeader>
@@ -50,78 +64,96 @@ export function BrandThemeCard({ brandTheme }: BrandThemeCardProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Color Palette */}
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-4">
-            Color Palette
-          </h4>
-          <div className="space-y-4">
-            <ColorSwatch
-              color={brandTheme.primary_color}
-              label="Primary Color"
-            />
-            <ColorSwatch
-              color={brandTheme.secondary_color}
-              label="Secondary Color"
-            />
-            <ColorSwatch
-              color={brandTheme.accent_color}
-              label="Accent Color"
-            />
+        {hasColors && (
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-4">
+              Color Palette
+            </h4>
+            <div className="space-y-4">
+              {primaryColor && (
+                <ColorSwatch color={primaryColor} label="Primary Color" />
+              )}
+              {secondaryColor && (
+                <ColorSwatch color={secondaryColor} label="Secondary Color" />
+              )}
+              {accentColor && (
+                <ColorSwatch color={accentColor} label="Accent Color" />
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Color Preview */}
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-3">
-            Palette Preview
-          </h4>
-          <div className="flex rounded-lg overflow-hidden h-16 shadow-sm border border-border">
-            <div
-              className="flex-1"
-              style={{ backgroundColor: brandTheme.primary_color }}
-            />
-            <div
-              className="flex-1"
-              style={{ backgroundColor: brandTheme.secondary_color }}
-            />
-            <div
-              className="flex-1"
-              style={{ backgroundColor: brandTheme.accent_color }}
-            />
+        {hasColors && (
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-3">
+              Palette Preview
+            </h4>
+            <div className="flex rounded-lg overflow-hidden h-16 shadow-sm border border-border">
+              {primaryColor && (
+                <div
+                  className="flex-1"
+                  style={{ backgroundColor: primaryColor }}
+                />
+              )}
+              {secondaryColor && (
+                <div
+                  className="flex-1"
+                  style={{ backgroundColor: secondaryColor }}
+                />
+              )}
+              {accentColor && (
+                <div
+                  className="flex-1"
+                  style={{ backgroundColor: accentColor }}
+                />
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Brand Tone */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Brand Tone
-            </h4>
-            <CopyButton text={brandTheme.tone} />
+        {tone && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Brand Tone
+              </h4>
+              <CopyButton text={tone} />
+            </div>
+            <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg">
+              {tone}
+            </p>
           </div>
-          <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg">
-            {brandTheme.tone}
-          </p>
-        </div>
+        )}
 
         {/* Style Suggestions */}
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-            <Paintbrush className="h-4 w-4" />
-            Style Suggestions
-          </h4>
-          <ul className="space-y-2">
-            {brandTheme.style_suggestions.map((suggestion, index) => (
-              <li
-                key={index}
-                className="text-sm text-foreground flex items-start gap-2"
-              >
-                <span className="text-primary mt-1">•</span>
-                {suggestion}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {styleSuggestions.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+              <Paintbrush className="h-4 w-4" />
+              Style Suggestions
+            </h4>
+            <ul className="space-y-2">
+              {styleSuggestions.map((suggestion, index) => (
+                <li
+                  key={index}
+                  className="text-sm text-foreground flex items-start gap-2"
+                >
+                  <span className="text-primary mt-1">•</span>
+                  {suggestion}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!hasContent && (
+          <div className="text-center py-4 text-muted-foreground">
+            No brand theme data available yet.
+          </div>
+        )}
       </CardContent>
     </Card>
   );

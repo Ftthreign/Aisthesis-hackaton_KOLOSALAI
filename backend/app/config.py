@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
     GOOGLE_API_KEY: str
-    GEMINI_VISION_MODEL: str = "gemini-1.5-flash-8b"
-    GEMINI_LLM_MODEL: str = "gemini-1.5-flash-8b"
+    GEMINI_VISION_MODEL: str = "gemini-2.5-flash-lite"
+    GEMINI_LLM_MODEL: str = "gemini-2.5-flash-lite"
 
     # Redis Configuration
     REDIS_HOST: str = "redis"
@@ -40,15 +40,20 @@ class Settings(BaseSettings):
     def ALLOWED_ORIGINS(self) -> list[str]:
         if not self.ALLOWED_ORIGINS_STR:
             return []
-        return [origin.strip() for origin in self.ALLOWED_ORIGINS_STR.split(",") if origin.strip()]
+        return [
+            origin.strip()
+            for origin in self.ALLOWED_ORIGINS_STR.split(",")
+            if origin.strip()
+        ]
 
     @computed_field
     @property
     def ALLOWED_EXTENSIONS(self) -> list[str]:
         if not self.ALLOWED_EXTENSIONS_STR:
             return ["jpg", "jpeg", "png", "webp"]
-        return [ext.strip() for ext in self.ALLOWED_EXTENSIONS_STR.split(",") if ext.strip()]
-
+        return [
+            ext.strip() for ext in self.ALLOWED_EXTENSIONS_STR.split(",") if ext.strip()
+        ]
 
 
 settings = Settings()

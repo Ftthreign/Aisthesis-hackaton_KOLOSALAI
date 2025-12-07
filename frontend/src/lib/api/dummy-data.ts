@@ -1,6 +1,6 @@
 // Dummy data for development while backend is being built
 import type {
-  AnalysisResponse,
+  AnalysisData,
   HistoryItem,
   VisionResult,
   Story,
@@ -12,7 +12,19 @@ import type {
   Persona,
   Packaging,
   ActionPlan,
+  User,
+  AnalysisStatus,
 } from "./types";
+
+export const dummyUser: User = {
+  id: "user-001",
+  email: "demo@example.com",
+  name: "Demo User",
+  avatar_url: null,
+  is_active: true,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
 
 export const dummyVisionResult: VisionResult = {
   labels: ["Coffee", "Latte", "Cappuccino", "Hot Beverage", "Breakfast"],
@@ -78,7 +90,8 @@ export const dummyPricing: Pricing = {
     "Student discount with valid ID - 10% off",
     "Happy Hour pricing on weekdays 2-4 PM",
   ],
-  best_posting_time: "7:00 AM - 9:00 AM (Morning coffee rush) and 2:00 PM - 4:00 PM (Afternoon break)",
+  best_posting_time:
+    "7:00 AM - 9:00 AM (Morning coffee rush) and 2:00 PM - 4:00 PM (Afternoon break)",
 };
 
 export const dummyBrandTheme: BrandTheme = {
@@ -216,52 +229,119 @@ export const dummyPackaging: Packaging = {
 };
 
 export const dummyActionPlan: ActionPlan = {
-  day_1: "Set up social media accounts (Instagram, TikTok) with consistent branding. Create a content calendar for the week. Design and order initial packaging materials.",
-  day_2: "Photograph product from multiple angles with professional lighting. Create 5 variations of product shots for different platforms. Write and schedule first 3 Instagram posts.",
-  day_3: "Set up Shopee and Tokopedia store listings with optimized descriptions. Configure payment and shipping options. Create promotional banners for marketplace stores.",
-  day_4: "Launch soft opening campaign on Instagram Stories. Reach out to 10 micro-influencers for collaboration opportunities. Set up customer feedback collection system.",
-  day_5: "Analyze first sales data and customer feedback. Adjust pricing or promotions if needed. Create behind-the-scenes content showing coffee preparation process.",
-  day_6: "Implement loyalty program system. Send thank you messages to first customers. Plan next week's content based on engagement data.",
-  day_7: "Review weekly performance metrics. Prepare monthly content themes. Set goals for the following week based on learnings.",
+  day_1:
+    "Set up social media accounts (Instagram, TikTok) with consistent branding. Create a content calendar for the week. Design and order initial packaging materials.",
+  day_2:
+    "Photograph product from multiple angles with professional lighting. Create 5 variations of product shots for different platforms. Write and schedule first 3 Instagram posts.",
+  day_3:
+    "Set up Shopee and Tokopedia store listings with optimized descriptions. Configure payment and shipping options. Create promotional banners for marketplace stores.",
+  day_4:
+    "Launch soft opening campaign on Instagram Stories. Reach out to 10 micro-influencers for collaboration opportunities. Set up customer feedback collection system.",
+  day_5:
+    "Analyze first sales data and customer feedback. Adjust pricing or promotions if needed. Create behind-the-scenes content showing coffee preparation process.",
+  day_6:
+    "Implement loyalty program system. Send thank you messages to first customers. Plan next week's content based on engagement data.",
+  day_7:
+    "Review weekly performance metrics. Prepare monthly content themes. Set goals for the following week based on learnings.",
 };
 
-export const createDummyAnalysisResponse = (id: string, imageUrl?: string): AnalysisResponse => ({
-  id,
-  image_url: imageUrl || "/placeholder-coffee.jpg",
-  image_filename: "coffee-latte.jpg",
-  vision_result: dummyVisionResult,
-  story: dummyStory,
-  taste: dummyTaste,
-  pricing: dummyPricing,
-  brand_theme: dummyBrandTheme,
-  seo: dummySEO,
-  marketplace: dummyMarketplace,
-  persona: dummyPersona,
-  packaging: dummyPackaging,
-  action_plan: dummyActionPlan,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-});
+export const createDummyAnalysisData = (
+  id: string,
+  imageUrl?: string,
+  status: AnalysisStatus = "COMPLETED",
+): AnalysisData => {
+  // For pending/processing states, return minimal data
+  if (status === "PENDING" || status === "PROCESSING") {
+    return {
+      id,
+      status,
+      image_url: imageUrl || "/placeholder-coffee.jpg",
+      image_filename: "coffee-latte.jpg",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      vision_result: null,
+      story: null,
+      taste: null,
+      pricing: null,
+      brand_theme: null,
+      seo: null,
+      marketplace: null,
+      persona: null,
+      packaging: null,
+      action_plan: null,
+    };
+  }
+
+  // For failed state
+  if (status === "FAILED") {
+    return {
+      id,
+      status,
+      error: "Analysis failed due to an internal error",
+      image_url: imageUrl || "/placeholder-coffee.jpg",
+      image_filename: "coffee-latte.jpg",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      vision_result: null,
+      story: null,
+      taste: null,
+      pricing: null,
+      brand_theme: null,
+      seo: null,
+      marketplace: null,
+      persona: null,
+      packaging: null,
+      action_plan: null,
+    };
+  }
+
+  // For completed state, return full data
+  return {
+    id,
+    status: "COMPLETED",
+    image_url: imageUrl || "/placeholder-coffee.jpg",
+    image_filename: "coffee-latte.jpg",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    vision_result: dummyVisionResult,
+    story: dummyStory,
+    taste: dummyTaste,
+    pricing: dummyPricing,
+    brand_theme: dummyBrandTheme,
+    seo: dummySEO,
+    marketplace: dummyMarketplace,
+    persona: dummyPersona,
+    packaging: dummyPackaging,
+    action_plan: dummyActionPlan,
+  };
+};
+
+// Legacy function name for backwards compatibility
+export const createDummyAnalysisResponse = createDummyAnalysisData;
 
 export const dummyHistoryItems: HistoryItem[] = [
   {
     id: "analysis-001",
     image_url: "/placeholder-coffee.jpg",
+    status: "COMPLETED",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
   },
   {
     id: "analysis-002",
     image_url: "/placeholder-cake.jpg",
+    status: "COMPLETED",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
   },
   {
     id: "analysis-003",
     image_url: "/placeholder-noodle.jpg",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(), // 3 days ago
+    status: "PROCESSING",
+    created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
   },
   {
     id: "analysis-004",
     image_url: "/placeholder-sushi.jpg",
+    status: "FAILED",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(), // 1 week ago
   },
 ];

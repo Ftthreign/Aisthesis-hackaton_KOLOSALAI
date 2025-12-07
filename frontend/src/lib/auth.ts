@@ -1,33 +1,19 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
+// For server-side calls inside Docker, use INTERNAL_API_URL (e.g., http://backend:8000/api/v1)
+// Falls back to NEXT_PUBLIC_API_URL for local development
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+  process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
 
-async function refreshAccessToken(refreshToken: string) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${refreshToken}`,
-      },
-    });
+if (!API_BASE_URL) throw new Error("MANA ENV VAR API_BASE_URL COKK");
 
-    if (!response.ok) {
-      throw new Error("Failed to refresh token");
-    }
-
-    const tokens = await response.json();
-    return {
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token,
-      accessTokenExpires: Date.now() + 30 * 60 * 1000,
-    };
-  } catch (error) {
-    console.error("Error refreshing access token:", error);
-    return null;
-  }
-}
+// Temporary storage for backend tokens during auth flow
+// This is needed because we can't mutate the Account object
+const pendingTokens = new Map<
+  string,
+  { accessToken: string; refreshToken: string }
+>();
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
@@ -48,85 +34,62 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: {
     strategy: "jwt",
   },
+  pages: {
+    signIn: "/login",
+  },
   callbacks: {
-    // FIXME: temporarily bypassing backend authentication until backend fully ready
-    async signIn({ user, account, profile }) {
-      // const idToken = account?.id_token;
+    async signIn({ account, user }) {
+      if (account?.provider === "google" && account.id_token) {
+        try {
+          // Call backend auth endpoint with Google ID token
+          const response = await fetch(`${API_BASE_URL}/auth/google/login`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ id_token: account.id_token }),
+          });
 
-      // if (!idToken) {
-      //   console.error("No id_token from provider");
-      //   return false;
-      // }
+          if (!response.ok) {
+            console.error("Backend auth failed:", response.status);
+            return false;
+          }
 
-      return true; // TODO: bypass for now
+          const data = await response.json();
+
+          // Store backend tokens temporarily using user email as key
+          if (user?.email) {
+            pendingTokens.set(user.email, {
+              accessToken: data.data.access_token,
+              refreshToken: data.data.refresh_token,
+            });
+          }
+
+          return true;
+        } catch (error) {
+          console.error("Error authenticating with backend:", error);
+          return false;
+        }
+      }
+      return false;
     },
-    async jwt({ token, account, user }) {
-      // Initial sign in - exchange Google ID token with backend
-      // if (account && account.id_token) {
-      //   try {
-      //     const response = await fetch(`${API_BASE_URL}/auth/google`, {
-      //       method: "POST",
-      //       headers: {
-      //         "Content-Type": "application/json",
-      //       },
-      //       body: JSON.stringify({ id_token: account.id_token }),
-      //     });
-
-      //     if (!response.ok) {
-      //       throw new Error("Failed to authenticate with backend");
-      //     }
-
-      //     const backendTokens = await response.json();
-
-      //     token.accessToken = backendTokens.access_token;
-      //     token.refreshToken = backendTokens.refresh_token;
-      //     token.accessTokenExpires = Date.now() + 30 * 60 * 1000; // 30 minutes
-      //     token.id = user?.id;
-      //     token.email = user?.email;
-      //     token.name = user?.name;
-      //     token.picture = user?.image;
-
-      //     return token;
-      //   } catch (error) {
-      //     console.error("Error exchanging token with backend:", error);
-      //     return { ...token, error: "BackendAuthError" };
-      //   }
-      // }
-
-      // // Return token if access token has not expired
-      // if (
-      //   token.accessTokenExpires &&
-      //   Date.now() < (token.accessTokenExpires as number)
-      // ) {
-      //   return token;
-      // }
-
-      // // Access token has expired, try to refresh it
-      // if (token.refreshToken) {
-      //   const refreshedTokens = await refreshAccessToken(
-      //     token.refreshToken as string
-      //   );
-      //   if (refreshedTokens) {
-      //     return {
-      //       ...token,
-      //       accessToken: refreshedTokens.accessToken,
-      //       refreshToken: refreshedTokens.refreshToken,
-      //       accessTokenExpires: refreshedTokens.accessTokenExpires,
-      //     };
-      //   }
-      // }
-
-      // // Unable to refresh, return token with error
-      // return { ...token, error: "RefreshAccessTokenError" };
+    async jwt({ token, user, trigger }) {
+      // On initial sign in, retrieve and persist the backend tokens
+      if (trigger === "signIn" && user?.email) {
+        const tokens = pendingTokens.get(user.email);
+        if (tokens) {
+          token.backendAccessToken = tokens.accessToken;
+          token.backendRefreshToken = tokens.refreshToken;
+          // Clean up the temporary storage
+          pendingTokens.delete(user.email);
+        }
+      }
       return token;
     },
     async session({ session, token }) {
-      // if (session.user) {
-      //   session.user.id = token.id as string;
-      //   session.accessToken = token.accessToken as string;
-      //   session.refreshToken = token.refreshToken as string;
-      //   session.error = token.error as string | undefined;
-      // }
+      // Expose backend access token to the client session
+      session.accessToken = token.backendAccessToken as string | undefined;
+      session.refreshToken = token.backendRefreshToken as string | undefined;
       return session;
     },
     async redirect({ url, baseUrl }) {

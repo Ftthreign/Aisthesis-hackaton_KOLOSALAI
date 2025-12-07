@@ -2,21 +2,51 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Trash2, Eye, Loader2, Calendar, MoreVertical } from "lucide-react";
+import {
+  Trash2,
+  Eye,
+  Loader2,
+  Calendar,
+  MoreVertical,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  RefreshCw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDeleteAnalysis } from "@/lib/api/hooks";
-import type { HistoryItem } from "@/lib/api/types";
+import {
+  useDeleteAnalysis,
+  getStatusLabel,
+  getStatusColor,
+} from "@/lib/api/hooks";
+import type { HistoryItem, AnalysisStatus } from "@/lib/api/types";
 
 interface HistoryCardProps {
   item: HistoryItem;
   onDeleted?: () => void;
+}
+
+function StatusIcon({ status }: { status: AnalysisStatus }) {
+  switch (status) {
+    case "PENDING":
+      return <Clock className="h-3 w-3" />;
+    case "PROCESSING":
+      return <RefreshCw className="h-3 w-3 animate-spin" />;
+    case "COMPLETED":
+      return <CheckCircle2 className="h-3 w-3" />;
+    case "FAILED":
+      return <XCircle className="h-3 w-3" />;
+    default:
+      return null;
+  }
 }
 
 export function HistoryCard({ item, onDeleted }: HistoryCardProps) {
@@ -43,6 +73,10 @@ export function HistoryCard({ item, onDeleted }: HistoryCardProps) {
     minute: "2-digit",
   });
 
+  const isProcessing =
+    item.status === "PENDING" || item.status === "PROCESSING";
+  const isFailed = item.status === "FAILED";
+
   return (
     <Card className="overflow-hidden group hover:shadow-lg transition-shadow">
       {/* Image */}
@@ -52,7 +86,9 @@ export function HistoryCard({ item, onDeleted }: HistoryCardProps) {
           <img
             src={item.image_url}
             alt="Analysis preview"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+              isFailed ? "opacity-50 grayscale" : ""
+            } ${isProcessing ? "opacity-75" : ""}`}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
@@ -60,15 +96,40 @@ export function HistoryCard({ item, onDeleted }: HistoryCardProps) {
           </div>
         )}
 
-        {/* Overlay Actions */}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-          <Button asChild size="sm" variant="secondary">
-            <Link href={`/history/${item.id}`}>
-              <Eye className="h-4 w-4 mr-1" />
-              View
-            </Link>
-          </Button>
+        {/* Status Badge */}
+        <div className="absolute top-2 left-2">
+          <Badge
+            variant={getStatusColor(item.status)}
+            className="flex items-center gap-1"
+          >
+            <StatusIcon status={item.status} />
+            {getStatusLabel(item.status)}
+          </Badge>
         </div>
+
+        {/* Processing Overlay */}
+        {isProcessing && (
+          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+            <div className="bg-background/90 rounded-lg px-4 py-2 flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span className="text-sm font-medium">
+                {item.status === "PENDING" ? "Queued..." : "Processing..."}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Overlay Actions (only for completed) */}
+        {item.status === "COMPLETED" && (
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <Button asChild size="sm" variant="secondary">
+              <Link href={`/dashboard/${item.id}`}>
+                <Eye className="h-4 w-4 mr-1" />
+                View
+              </Link>
+            </Button>
+          </div>
+        )}
 
         {/* Menu */}
         <div className="absolute top-2 right-2">
@@ -83,18 +144,32 @@ export function HistoryCard({ item, onDeleted }: HistoryCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href={`/history/${item.id}`}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Details
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/dashboard/${item.id}`}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  Open in Dashboard
-                </Link>
-              </DropdownMenuItem>
+              {item.status === "COMPLETED" && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/dashboard/${item.id}`}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Analysis
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+              {isProcessing && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/dashboard/${item.id}`}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Check Status
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {isFailed && (
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/upload">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Try Again
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
                 onClick={() => setShowDeleteConfirm(true)}

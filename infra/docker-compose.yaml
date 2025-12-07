@@ -25,16 +25,18 @@ services:
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:80/api/v1}
+      # Internal URL for server-side calls within Docker network
+      - INTERNAL_API_URL=http://backend:8000/api/v1
     depends_on:
       - backend
     restart: unless-stopped
     deploy:
       resources:
         limits:
-          cpus: '1.0'
+          cpus: "1.0"
           memory: 512M
         reservations:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 256M
 
   backend:
@@ -62,10 +64,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
+          cpus: "2.0"
           memory: 1G
         reservations:
-          cpus: '1.0'
+          cpus: "1.0"
           memory: 512M
 
   worker:
@@ -86,10 +88,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
+          cpus: "2.0"
           memory: 2G
         reservations:
-          cpus: '1.0'
+          cpus: "1.0"
           memory: 1G
 
   redis:
@@ -100,10 +102,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 256M
         reservations:
-          cpus: '0.25'
+          cpus: "0.25"
           memory: 128M
 
   db:
@@ -123,10 +125,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
+          cpus: "1.0"
           memory: 512M
         reservations:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 256M
 
 volumes:

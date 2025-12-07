@@ -11,6 +11,10 @@ interface VisionCardProps {
 }
 
 export function VisionCard({ vision, imageUrl }: VisionCardProps) {
+  const labels = vision.labels ?? [];
+  const objects = vision.objects ?? [];
+  const colors = vision.colors ?? [];
+
   return (
     <Card>
       <CardHeader>
@@ -33,27 +37,29 @@ export function VisionCard({ vision, imageUrl }: VisionCardProps) {
         )}
 
         {/* Detected Labels */}
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-2">
-            Detected Labels
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            {vision.labels.map((label, index) => (
-              <Badge key={index} variant="secondary">
-                {label}
-              </Badge>
-            ))}
+        {labels.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-2">
+              Detected Labels
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {labels.map((label, index) => (
+                <Badge key={index} variant="secondary">
+                  {label}
+                </Badge>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Detected Objects */}
-        {vision.objects.length > 0 && (
+        {objects.length > 0 && (
           <div>
             <h4 className="text-sm font-medium text-muted-foreground mb-2">
               Detected Objects
             </h4>
             <div className="flex flex-wrap gap-2">
-              {vision.objects.map((obj, index) => (
+              {objects.map((obj, index) => (
                 <Badge key={index} variant="outline">
                   {obj}
                 </Badge>
@@ -63,13 +69,13 @@ export function VisionCard({ vision, imageUrl }: VisionCardProps) {
         )}
 
         {/* Color Palette */}
-        {vision.colors.length > 0 && (
+        {colors.length > 0 && (
           <div>
             <h4 className="text-sm font-medium text-muted-foreground mb-2">
               Dominant Colors
             </h4>
             <div className="flex gap-2">
-              {vision.colors.map((color, index) => (
+              {colors.map((color, index) => (
                 <div
                   key={index}
                   className="flex flex-col items-center gap-1"
@@ -97,6 +103,16 @@ export function VisionCard({ vision, imageUrl }: VisionCardProps) {
             <p className="text-sm text-foreground">{vision.mood}</p>
           </div>
         )}
+
+        {/* Empty State */}
+        {labels.length === 0 &&
+          objects.length === 0 &&
+          colors.length === 0 &&
+          !vision.mood && (
+            <div className="text-center py-4 text-muted-foreground">
+              No vision analysis data available.
+            </div>
+          )}
       </CardContent>
     </Card>
   );

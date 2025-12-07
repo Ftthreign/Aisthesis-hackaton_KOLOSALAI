@@ -17,6 +17,18 @@ interface StoryCardProps {
 }
 
 export function StoryCard({ story }: StoryCardProps) {
+  const productName = story.product_name ?? "Untitled Product";
+  const tagline = story.tagline ?? "";
+  const shortDesc = story.short_desc ?? "";
+  const longDesc = story.long_desc ?? "";
+  const captionCasual = story.caption_casual ?? "";
+  const captionProfessional = story.caption_professional ?? "";
+  const captionStorytelling = story.caption_storytelling ?? "";
+
+  const hasDescriptions = shortDesc || longDesc;
+  const hasCaptions =
+    captionCasual || captionProfessional || captionStorytelling;
+
   return (
     <Card>
       <CardHeader>
@@ -34,69 +46,104 @@ export function StoryCard({ story }: StoryCardProps) {
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <h3 className="text-2xl font-bold text-foreground">
-                {story.product_name}
+                {productName}
               </h3>
-              <p className="text-lg text-muted-foreground italic flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
-                {story.tagline}
-              </p>
+              {tagline && (
+                <p className="text-lg text-muted-foreground italic flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  {tagline}
+                </p>
+              )}
             </div>
             <CopyButton
-              text={`${story.product_name}\n${story.tagline}`}
+              text={tagline ? `${productName}\n${tagline}` : productName}
               label="Copy name & tagline"
             />
           </div>
         </div>
 
         {/* Descriptions */}
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-sm font-medium text-muted-foreground">
-                Short Description
-              </h4>
-              <CopyButton text={story.short_desc} />
-            </div>
-            <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg">
-              {story.short_desc}
-            </p>
-          </div>
+        {hasDescriptions && (
+          <div className="space-y-4">
+            {shortDesc && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Short Description
+                  </h4>
+                  <CopyButton text={shortDesc} />
+                </div>
+                <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg">
+                  {shortDesc}
+                </p>
+              </div>
+            )}
 
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-sm font-medium text-muted-foreground">
-                Long Description
-              </h4>
-              <CopyButton text={story.long_desc} />
-            </div>
-            <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg leading-relaxed">
-              {story.long_desc}
-            </p>
+            {longDesc && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Long Description
+                  </h4>
+                  <CopyButton text={longDesc} />
+                </div>
+                <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg leading-relaxed">
+                  {longDesc}
+                </p>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Instagram Captions */}
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-3">
-            Instagram Captions
-          </h4>
-          <Tabs defaultValue="casual" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="casual">Casual</TabsTrigger>
-              <TabsTrigger value="professional">Professional</TabsTrigger>
-              <TabsTrigger value="storytelling">Storytelling</TabsTrigger>
-            </TabsList>
-            <TabsContent value="casual">
-              <CopyBlock text={story.caption_casual} />
-            </TabsContent>
-            <TabsContent value="professional">
-              <CopyBlock text={story.caption_professional} />
-            </TabsContent>
-            <TabsContent value="storytelling">
-              <CopyBlock text={story.caption_storytelling} />
-            </TabsContent>
-          </Tabs>
-        </div>
+        {hasCaptions && (
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-3">
+              Instagram Captions
+            </h4>
+            <Tabs defaultValue="casual" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="casual" disabled={!captionCasual}>
+                  Casual
+                </TabsTrigger>
+                <TabsTrigger
+                  value="professional"
+                  disabled={!captionProfessional}
+                >
+                  Professional
+                </TabsTrigger>
+                <TabsTrigger
+                  value="storytelling"
+                  disabled={!captionStorytelling}
+                >
+                  Storytelling
+                </TabsTrigger>
+              </TabsList>
+              {captionCasual && (
+                <TabsContent value="casual">
+                  <CopyBlock text={captionCasual} />
+                </TabsContent>
+              )}
+              {captionProfessional && (
+                <TabsContent value="professional">
+                  <CopyBlock text={captionProfessional} />
+                </TabsContent>
+              )}
+              {captionStorytelling && (
+                <TabsContent value="storytelling">
+                  <CopyBlock text={captionStorytelling} />
+                </TabsContent>
+              )}
+            </Tabs>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!hasDescriptions && !hasCaptions && !tagline && (
+          <div className="text-center py-4 text-muted-foreground">
+            No story content available yet.
+          </div>
+        )}
       </CardContent>
     </Card>
   );
