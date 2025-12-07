@@ -1,12 +1,6 @@
 "use client";
 
-import type {
-  AnalysisData,
-  AnalysisCreateData,
-  HistoryItem,
-  DeleteResponse,
-  User,
-} from "./types";
+import type { AnalysisData, AnalysisCreateData, User } from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -34,7 +28,7 @@ async function getAccessToken(): Promise<string | null> {
 
 async function fetchWithAuth(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<Response> {
   const token = await getAccessToken();
 
@@ -69,17 +63,6 @@ async function fetchWithAuth(
   return response;
 }
 
-function downloadFile(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
 export const apiClient = {
   /**
    * Get current user profile (requires authentication)
@@ -98,7 +81,7 @@ export const apiClient = {
    */
   createAnalysis: async (
     file: File,
-    context?: string
+    context?: string,
   ): Promise<AnalysisCreateData> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -127,56 +110,6 @@ export const apiClient = {
   },
 
   /**
-   * Get list of user's analysis history
-   * Note: This endpoint may not be implemented in backend yet
-   * GET /analysis (list endpoint TBD)
-   */
-  getHistory: async (): Promise<HistoryItem[]> => {
-    const response = await fetchWithAuth("/analysis");
-    const json = await response.json();
-    return json.data; // Unwrap { data: HistoryItem[] }
-  },
-
-  /**
-   * Delete an analysis
-   * Note: This endpoint may not be implemented in backend yet
-   * DELETE /analysis/{id}
-   */
-  deleteAnalysis: async (id: string): Promise<DeleteResponse> => {
-    const response = await fetchWithAuth(`/analysis/${id}`, {
-      method: "DELETE",
-    });
-    const json = await response.json();
-    return json.data || { message: "Deleted successfully" };
-  },
-
-  /**
-   * Download analysis as PDF
-   * Note: This endpoint may not be implemented in backend yet
-   * GET /export/pdf/{id}
-   */
-  downloadPdf: async (id: string): Promise<Blob> => {
-    const response = await fetchWithAuth(`/export/pdf/${id}`);
-    return response.blob();
-  },
-
-  /**
-   * Download analysis as JSON
-   * Note: This endpoint may not be implemented in backend yet
-   * GET /export/json/{id}
-   */
-  downloadJson: async (id: string): Promise<AnalysisData> => {
-    const response = await fetchWithAuth(`/export/json/${id}`);
-    const json = await response.json();
-    return json.data || json;
-  },
-
-  /**
-   * Helper function to trigger file download
-   */
-  downloadFile,
-
-  /**
    * Error class for API errors
    */
   ApiClientError,
@@ -193,7 +126,7 @@ export const apiClient = {
       intervalMs?: number;
       maxAttempts?: number;
       onStatusChange?: (status: string) => void;
-    } = {}
+    } = {},
   ): Promise<AnalysisData> => {
     const { intervalMs = 2000, maxAttempts = 60, onStatusChange } = options;
 
@@ -214,7 +147,7 @@ export const apiClient = {
         throw new ApiClientError(
           analysis.error || "Analysis failed",
           500,
-          analysis.error || "Analysis processing failed"
+          analysis.error || "Analysis processing failed",
         );
       }
 
@@ -226,7 +159,7 @@ export const apiClient = {
     throw new ApiClientError(
       "Analysis timed out",
       408,
-      "Analysis took too long to complete"
+      "Analysis took too long to complete",
     );
   },
 };

@@ -147,20 +147,6 @@ export type AnalysisResponse = DataResponse<AnalysisData>;
 // Maps AnalysisData for easier consumption
 export type AnalysisResult = AnalysisData;
 
-// History item for list view
-export interface HistoryItem {
-  id: string;
-  image_url: string;
-  status: AnalysisStatus;
-  created_at: string;
-}
-
-export type HistoryListResponse = DataResponse<HistoryItem[]>;
-
-export interface DeleteResponse {
-  message: string;
-}
-
 export interface ApiError {
   detail: string;
   status: number;

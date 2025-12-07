@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -11,7 +11,6 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +33,6 @@ import {
   PersonaCard,
   PackagingCard,
   ActionPlanCard,
-  ExportButtons,
 } from "@/components/analysis";
 
 interface HistoryDetailPageProps {
@@ -206,7 +204,7 @@ export default function HistoryDetailPage({ params }: HistoryDetailPageProps) {
                   onClick={() => setShowDeleteConfirm(true)}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  Remove from History
                 </Button>
                 <Button asChild variant="outline">
                   <Link href="/history">Back to History</Link>
@@ -216,7 +214,7 @@ export default function HistoryDetailPage({ params }: HistoryDetailPageProps) {
               {showDeleteConfirm && (
                 <div className="mt-4 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
                   <p className="text-sm text-foreground mb-3">
-                    Are you sure you want to delete this failed analysis?
+                    Remove this failed analysis from your history?
                   </p>
                   <div className="flex gap-2 justify-center">
                     <Button
@@ -228,10 +226,10 @@ export default function HistoryDetailPage({ params }: HistoryDetailPageProps) {
                       {deleteAnalysis.isPending ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Deleting...
+                          Removing...
                         </>
                       ) : (
-                        "Yes, Delete"
+                        "Yes, Remove"
                       )}
                     </Button>
                     <Button
@@ -288,17 +286,12 @@ export default function HistoryDetailPage({ params }: HistoryDetailPageProps) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <ExportButtons
-              analysisId={analysis.id}
-              filename={productName}
-              variant="compact"
-            />
             <Button
               variant="outline"
               size="icon"
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => setShowDeleteConfirm(true)}
-              title="Delete analysis"
+              title="Remove from history"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -309,8 +302,8 @@ export default function HistoryDetailPage({ params }: HistoryDetailPageProps) {
         {showDeleteConfirm && (
           <div className="mb-6 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
             <p className="text-sm text-foreground mb-3">
-              Are you sure you want to delete this analysis? This action cannot
-              be undone.
+              Remove this analysis from your history? The data will still exist
+              on the server.
             </p>
             <div className="flex gap-2">
               <Button
@@ -322,10 +315,10 @@ export default function HistoryDetailPage({ params }: HistoryDetailPageProps) {
                 {deleteAnalysis.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Deleting...
+                    Removing...
                   </>
                 ) : (
-                  "Yes, Delete"
+                  "Yes, Remove"
                 )}
               </Button>
               <Button
@@ -395,7 +388,9 @@ export default function HistoryDetailPage({ params }: HistoryDetailPageProps) {
                 Back to History
               </Link>
             </Button>
-            <ExportButtons analysisId={analysis.id} filename={productName} />
+            <Button asChild>
+              <Link href="/dashboard/upload">New Analysis</Link>
+            </Button>
           </div>
         </div>
       </div>

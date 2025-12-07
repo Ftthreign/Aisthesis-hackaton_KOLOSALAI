@@ -1,7 +1,10 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+// Use INTERNAL_API_URL for server-side calls (inside Docker network)
+// Falls back to NEXT_PUBLIC_API_URL for local development
+const API_BASE_URL =
+  process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
 
 // Temporary storage for backend tokens during auth flow
 // This is needed because we can't mutate the Account object

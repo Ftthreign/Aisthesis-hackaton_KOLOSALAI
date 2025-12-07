@@ -27,7 +27,14 @@ import {
   getStatusLabel,
   getStatusColor,
 } from "@/lib/api/hooks";
-import type { HistoryItem, AnalysisStatus } from "@/lib/api/types";
+import type { AnalysisStatus } from "@/lib/api/types";
+
+interface HistoryItem {
+  id: string;
+  image_url: string;
+  status: AnalysisStatus;
+  created_at: string;
+}
 
 interface HistoryCardProps {
   item: HistoryItem;
@@ -145,14 +152,12 @@ export function HistoryCard({ item, onDeleted }: HistoryCardProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {item.status === "COMPLETED" && (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/dashboard/${item.id}`}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Analysis
-                    </Link>
-                  </DropdownMenuItem>
-                </>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dashboard/${item.id}`}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Analysis
+                  </Link>
+                </DropdownMenuItem>
               )}
               {isProcessing && (
                 <DropdownMenuItem asChild>
@@ -175,7 +180,7 @@ export function HistoryCard({ item, onDeleted }: HistoryCardProps) {
                 onClick={() => setShowDeleteConfirm(true)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                Remove from History
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -197,7 +202,7 @@ export function HistoryCard({ item, onDeleted }: HistoryCardProps) {
         {showDeleteConfirm && (
           <div className="mt-4 p-3 bg-destructive/10 rounded-lg border border-destructive/20">
             <p className="text-sm text-foreground mb-3">
-              Are you sure you want to delete this analysis?
+              Remove this analysis from your history?
             </p>
             <div className="flex gap-2">
               <Button
@@ -209,7 +214,7 @@ export function HistoryCard({ item, onDeleted }: HistoryCardProps) {
                 {deleteAnalysis.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  "Delete"
+                  "Remove"
                 )}
               </Button>
               <Button
