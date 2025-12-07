@@ -11,8 +11,6 @@ import type {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-if (!API_BASE_URL) throw new Error("MANA ENV VAR API_BASE_URL COKK");
-
 class ApiServerError extends Error {
   status: number;
   detail: string;
@@ -32,7 +30,7 @@ async function getAccessToken(): Promise<string | null> {
 
 async function fetchWithAuth(
   endpoint: string,
-  options: RequestInit = {},
+  options: RequestInit = {}
 ): Promise<Response> {
   const token = await getAccessToken();
 

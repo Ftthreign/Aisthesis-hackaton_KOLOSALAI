@@ -10,8 +10,6 @@ import type {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-if (!API_BASE_URL) throw new Error("MANA ENV VAR API_BASE_URL COKK");
-
 class ApiClientError extends Error {
   status: number;
   detail: string;
@@ -36,7 +34,7 @@ async function getAccessToken(): Promise<string | null> {
 
 async function fetchWithAuth(
   endpoint: string,
-  options: RequestInit = {},
+  options: RequestInit = {}
 ): Promise<Response> {
   const token = await getAccessToken();
 
@@ -100,7 +98,7 @@ export const apiClient = {
    */
   createAnalysis: async (
     file: File,
-    context?: string,
+    context?: string
   ): Promise<AnalysisCreateData> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -195,7 +193,7 @@ export const apiClient = {
       intervalMs?: number;
       maxAttempts?: number;
       onStatusChange?: (status: string) => void;
-    } = {},
+    } = {}
   ): Promise<AnalysisData> => {
     const { intervalMs = 2000, maxAttempts = 60, onStatusChange } = options;
 
@@ -216,7 +214,7 @@ export const apiClient = {
         throw new ApiClientError(
           analysis.error || "Analysis failed",
           500,
-          analysis.error || "Analysis processing failed",
+          analysis.error || "Analysis processing failed"
         );
       }
 
@@ -228,7 +226,7 @@ export const apiClient = {
     throw new ApiClientError(
       "Analysis timed out",
       408,
-      "Analysis took too long to complete",
+      "Analysis took too long to complete"
     );
   },
 };
