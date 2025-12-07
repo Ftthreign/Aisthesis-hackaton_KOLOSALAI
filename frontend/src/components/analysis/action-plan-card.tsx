@@ -27,7 +27,7 @@ function DayPlanItem({ day, content, isActive = false }: DayPlanItemProps) {
     <div
       className={cn(
         "relative flex gap-4 pb-8 last:pb-0",
-        "before:absolute before:left-[15px] before:top-8 before:h-full before:w-0.5 before:bg-border last:before:hidden"
+        "before:absolute before:left-[15px] before:top-8 before:h-full before:w-0.5 before:bg-border last:before:hidden",
       )}
     >
       <div
@@ -35,7 +35,7 @@ function DayPlanItem({ day, content, isActive = false }: DayPlanItemProps) {
           "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2",
           isActive
             ? "bg-primary border-primary text-primary-foreground"
-            : "bg-background border-border text-muted-foreground"
+            : "bg-background border-border text-muted-foreground",
         )}
       >
         {isActive ? (
@@ -49,7 +49,12 @@ function DayPlanItem({ day, content, isActive = false }: DayPlanItemProps) {
           <h4 className="text-sm font-medium text-foreground mb-1">
             Day {day}
           </h4>
-          <CopyButton text={content} size="icon" variant="ghost" className="shrink-0 h-6 w-6" />
+          <CopyButton
+            text={content}
+            size="icon"
+            variant="ghost"
+            className="shrink-0 h-6 w-6"
+          />
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
           {content}
@@ -68,7 +73,12 @@ export function ActionPlanCard({ actionPlan }: ActionPlanCardProps) {
     { day: 5, content: actionPlan.day_5 },
     { day: 6, content: actionPlan.day_6 },
     { day: 7, content: actionPlan.day_7 },
-  ];
+  ].filter((d) => d.content !== null && d.content !== undefined) as {
+    day: number;
+    content: string;
+  }[];
+
+  const hasContent = days.length > 0;
 
   const fullPlanText = days
     .map((d) => `Day ${d.day}:\n${d.content}`)
@@ -87,26 +97,34 @@ export function ActionPlanCard({ actionPlan }: ActionPlanCardProps) {
               Step-by-step guide to launch and promote your product
             </CardDescription>
           </div>
-          <CopyButton
-            text={fullPlanText}
-            label="Copy full plan"
-            showLabel
-            variant="outline"
-            size="sm"
-          />
+          {hasContent && (
+            <CopyButton
+              text={fullPlanText}
+              label="Copy full plan"
+              showLabel
+              variant="outline"
+              size="sm"
+            />
+          )}
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-0">
-          {days.map((dayItem, index) => (
-            <DayPlanItem
-              key={dayItem.day}
-              day={dayItem.day}
-              content={dayItem.content}
-              isActive={index === 0}
-            />
-          ))}
-        </div>
+        {hasContent ? (
+          <div className="space-y-0">
+            {days.map((dayItem, index) => (
+              <DayPlanItem
+                key={dayItem.day}
+                day={dayItem.day}
+                content={dayItem.content}
+                isActive={index === 0}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-4 text-muted-foreground">
+            No action plan available yet.
+          </div>
+        )}
       </CardContent>
     </Card>
   );

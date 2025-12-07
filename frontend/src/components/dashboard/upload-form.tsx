@@ -20,13 +20,14 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useUploadAnalysis } from "@/lib/api/hooks";
+import { useUploadAnalysis, getStatusLabel } from "@/lib/api/hooks";
 
 export function UploadForm() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [context, setContext] = useState<string>("");
 
   const uploadAnalysis = useUploadAnalysis();
 
@@ -73,7 +74,10 @@ export function UploadForm() {
     if (!file) return;
 
     try {
-      const result = await uploadAnalysis.mutateAsync(file);
+      const result = await uploadAnalysis.mutateAsync({
+        file,
+        context: context.trim() || undefined,
+      });
       // Redirect to the analysis result page after successful upload
       router.push(`/dashboard/${result.id}`);
     } catch (error) {
@@ -85,8 +89,47 @@ export function UploadForm() {
   const clearFile = () => {
     setFile(null);
     setPreview(null);
+    setContext("");
     uploadAnalysis.reset();
   };
+
+  // Get status display info
+  const getStatusInfo = () => {
+    if (!uploadAnalysis.analysisStatus) return null;
+
+    switch (uploadAnalysis.analysisStatus) {
+      case "PENDING":
+        return {
+          label: "Queued for processing...",
+          description:
+            "Your image has been uploaded and is waiting to be processed.",
+        };
+      case "PROCESSING":
+        return {
+          label: "Analyzing your image...",
+          description:
+            "Our AI is generating insights for your product. This may take a moment.",
+        };
+      case "COMPLETED":
+        return {
+          label: "Analysis complete!",
+          description: "Redirecting to your results...",
+        };
+      case "FAILED":
+        return {
+          label: "Analysis failed",
+          description:
+            "There was an error processing your image. Please try again.",
+        };
+      default:
+        return {
+          label: getStatusLabel(uploadAnalysis.analysisStatus),
+          description: "Processing...",
+        };
+    }
+  };
+
+  const statusInfo = getStatusInfo();
 
   return (
     <Card>
@@ -115,18 +158,22 @@ export function UploadForm() {
             </div>
           )}
 
-          {/* Upload Progress Indicator */}
-          {uploadAnalysis.isPending && (
+          {/* Upload Progress Indicator with Status */}
+          {uploadAnalysis.isPending && statusInfo && (
             <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
               <Loader2 className="h-5 w-5 text-primary animate-spin" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">
-                  Analyzing your image...
+                  {statusInfo.label}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  This may take a moment. Our AI is generating insights for your
-                  product.
+                  {statusInfo.description}
                 </p>
+                {uploadAnalysis.analysisId && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Analysis ID: {uploadAnalysis.analysisId}
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -190,6 +237,26 @@ export function UploadForm() {
             )}
           </div>
 
+          {/* Optional Context Input */}
+          {preview && (
+            <div className="space-y-2">
+              <label
+                htmlFor="context"
+                className="text-sm font-medium text-foreground"
+              >
+                Additional Context (Optional)
+              </label>
+              <textarea
+                id="context"
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+                placeholder="Add any additional information about your product (e.g., target market, price range, brand values)..."
+                className="w-full min-h-[80px] px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                disabled={uploadAnalysis.isPending}
+              />
+            </div>
+          )}
+
           <div className="flex gap-4">
             <Button
               type="submit"
@@ -199,7 +266,11 @@ export function UploadForm() {
               {uploadAnalysis.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Analyzing...
+                  {uploadAnalysis.analysisStatus === "PENDING"
+                    ? "Queued..."
+                    : uploadAnalysis.analysisStatus === "PROCESSING"
+                      ? "Analyzing..."
+                      : "Processing..."}
                 </>
               ) : (
                 <>

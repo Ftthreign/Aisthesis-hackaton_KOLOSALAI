@@ -17,6 +17,17 @@ interface PersonaCardProps {
 }
 
 export function PersonaCard({ persona }: PersonaCardProps) {
+  const name = persona.name ?? "Ideal Customer";
+  const bio = persona.bio ?? "";
+  const demographics = persona.demographics ?? {};
+  const motivations = persona.motivations ?? [];
+  const painPoints = persona.pain_points ?? [];
+
+  const hasDemographics =
+    demographics.age_range || demographics.location || demographics.gender;
+  const hasContent =
+    bio || hasDemographics || motivations.length > 0 || painPoints.length > 0;
+
   return (
     <Card>
       <CardHeader>
@@ -38,78 +49,106 @@ export function PersonaCard({ persona }: PersonaCardProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2 mb-1">
                 <h3 className="text-lg font-semibold text-foreground">
-                  {persona.name}
+                  {name}
                 </h3>
-                <CopyButton
-                  text={`${persona.name}\n\n${persona.bio}`}
-                  size="sm"
-                />
+                {bio && <CopyButton text={`${name}\n\n${bio}`} size="sm" />}
               </div>
-              <p className="text-sm text-muted-foreground">{persona.bio}</p>
+              {bio ? (
+                <p className="text-sm text-muted-foreground">{bio}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">
+                  No bio available
+                </p>
+              )}
             </div>
           </div>
         </div>
 
         {/* Demographics */}
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-3">
-            Demographics
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-muted/30 rounded-lg p-3">
-              <p className="text-xs text-muted-foreground mb-1">Age Range</p>
-              <p className="text-sm font-medium text-foreground">
-                {persona.demographics.age_range}
-              </p>
-            </div>
-            <div className="bg-muted/30 rounded-lg p-3">
-              <p className="text-xs text-muted-foreground mb-1">Location</p>
-              <p className="text-sm font-medium text-foreground">
-                {persona.demographics.location}
-              </p>
-            </div>
-            <div className="bg-muted/30 rounded-lg p-3">
-              <p className="text-xs text-muted-foreground mb-1">Gender</p>
-              <p className="text-sm font-medium text-foreground">
-                {persona.demographics.gender}
-              </p>
+        {hasDemographics && (
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-3">
+              Demographics
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {demographics.age_range && (
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Age Range
+                  </p>
+                  <p className="text-sm font-medium text-foreground">
+                    {demographics.age_range}
+                  </p>
+                </div>
+              )}
+              {demographics.location && (
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Location</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {demographics.location}
+                  </p>
+                </div>
+              )}
+              {demographics.gender && (
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Gender</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {demographics.gender}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Motivations */}
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-            <Target className="h-4 w-4" />
-            Motivations
-          </h4>
-          <ul className="space-y-2">
-            {persona.motivations.map((motivation, index) => (
-              <li
-                key={index}
-                className="text-sm text-foreground flex items-start gap-2"
-              >
-                <Heart className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                {motivation}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {motivations.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              Motivations
+            </h4>
+            <ul className="space-y-2">
+              {motivations.map((motivation, index) => (
+                <li
+                  key={index}
+                  className="text-sm text-foreground flex items-start gap-2"
+                >
+                  <Heart className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  {motivation}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Pain Points */}
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
-            Pain Points
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            {persona.pain_points.map((painPoint, index) => (
-              <Badge key={index} variant="outline" className="text-destructive border-destructive/30">
-                {painPoint}
-              </Badge>
-            ))}
+        {painPoints.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              Pain Points
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {painPoints.map((painPoint, index) => (
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className="text-destructive border-destructive/30"
+                >
+                  {painPoint}
+                </Badge>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Empty State */}
+        {!hasContent && (
+          <div className="text-center py-4 text-muted-foreground">
+            No persona data available yet.
+          </div>
+        )}
       </CardContent>
     </Card>
   );

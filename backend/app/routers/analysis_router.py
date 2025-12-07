@@ -1,33 +1,39 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-from uuid import UUID, uuid4
-from pathlib import Path
-from PIL import Image
-from io import BytesIO
-import logging
 import asyncio
+import logging
+import os
+from io import BytesIO
+from pathlib import Path
+from uuid import UUID, uuid4
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from PIL import Image
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.config import settings
-from app.database import get_db, AsyncSessionLocal
 from app.core.auth import get_current_user
-
-from app.schemas.analysis import (
-    AnalysisCreateResponse,
-    AnalysisCreateData,
-    AnalysisResponse,
-    AnalysisData,
-)
-
+from app.database import AsyncSessionLocal, get_db
 from app.models.analysis.analysis import Analysis, AnalysisStatus
+from app.schemas.analysis import (
+    AnalysisCreateData,
+    AnalysisCreateResponse,
+    AnalysisData,
+    AnalysisResponse,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/analysis", tags=["Analysis"])
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-UPLOAD_DIR = BASE_DIR / "uploads"
+# Use absolute path for Docker compatibility - matches volume mount at /app/uploads
+# In Docker: /app/uploads, in local dev: backend/app/uploads (relative to code)
+if os.environ.get("ENVIRONMENT") == "production" or os.path.exists("/app/uploads"):
+    UPLOAD_DIR = Path("/app/uploads")
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    UPLOAD_DIR = BASE_DIR / "uploads"
+
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -97,10 +103,7 @@ async def create_analysis(
                 img_bytes = f.read()
 
             gemini_image = {
-                "inline_data": {
-                    "mime_type": "image/png",
-                    "data": img_bytes
-                }
+                "inline_data": {"mime_type": "image/png", "data": img_bytes}
             }
 
             from app.services.analysis_service import AnalysisService
@@ -109,7 +112,9 @@ async def create_analysis(
                 async with AsyncSessionLocal() as bg:
                     try:
                         # Fetch fresh analysis row
-                        res = await bg.execute(select(Analysis).where(Analysis.id == analysis_id))
+                        res = await bg.execute(
+                            select(Analysis).where(Analysis.id == analysis_id)
+                        )
                         a = res.scalar_one()
 
                         a.status = AnalysisStatus.PROCESSING.value
@@ -126,7 +131,9 @@ async def create_analysis(
                         logger.error(f"❌ Background failed: {e}")
                         # Mark FAILED
                         async with AsyncSessionLocal() as bg2:
-                            res = await bg2.execute(select(Analysis).where(Analysis.id == analysis_id))
+                            res = await bg2.execute(
+                                select(Analysis).where(Analysis.id == analysis_id)
+                            )
                             a2 = res.scalar_one()
                             a2.status = AnalysisStatus.FAILED.value
                             a2.error = str(e)

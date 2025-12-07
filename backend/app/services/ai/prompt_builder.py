@@ -1,14 +1,15 @@
 from typing import Any, Optional
 
 from app.prompts import (
-    STORY_SYSTEM_PROMPT,
+    ACTION_PLAN_SYSTEM_PROMPT,
     BRAND_THEME_SYSTEM_PROMPT,
-    TASTE_SYSTEM_PROMPT,
-    SEO_SYSTEM_PROMPT,
     MARKETPLACE_SYSTEM_PROMPT,
     PACKAGING_SYSTEM_PROMPT,
     PERSONA_SYSTEM_PROMPT,
-    ACTION_PLAN_SYSTEM_PROMPT,
+    PRICING_SYSTEM_PROMPT,
+    SEO_SYSTEM_PROMPT,
+    STORY_SYSTEM_PROMPT,
+    TASTE_SYSTEM_PROMPT,
     VISION_SYSTEM_PROMPT,
 )
 
@@ -16,7 +17,7 @@ from app.prompts import (
 class PromptBuilder:
     """
     Prompt builder dengan format baru Gemini 1.5:
-    
+
     [
         {
             "role": "user",
@@ -88,16 +89,10 @@ class PromptBuilder:
         parts.append({"text": user_text.strip() or ""})
 
         # Final format
-        return [
-            {
-                "role": "user",
-                "parts": parts
-            }
-        ]
+        return [{"role": "user", "parts": parts}]
 
 
 class PromptFactory:
-
     @staticmethod
     def story(images, context=None, vision=None):
         return (
@@ -199,8 +194,4 @@ class PromptFactory:
 
     @staticmethod
     def vision(images):
-        return (
-            PromptBuilder()
-            .system(VISION_SYSTEM_PROMPT)
-            .with_images(images)
-        )
+        return PromptBuilder().system(VISION_SYSTEM_PROMPT).with_images(images)
