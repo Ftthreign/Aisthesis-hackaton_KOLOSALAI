@@ -60,4 +60,6 @@ infra/terraform/*.auto.tfvars
 **/*.pem
 **/*.sh
 *.sh
+
+Hackaton.md
 !backend/entrypoint.sh
