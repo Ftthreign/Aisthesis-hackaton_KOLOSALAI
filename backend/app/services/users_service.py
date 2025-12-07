@@ -29,8 +29,8 @@ class UserService:
             return GoogleTokenPayload(
                 sub=payload['sub'],
                 email=payload['email'],
-                name=payload.get('name', payload.get('email',  '')),  # Fallback to email if name not present
-                picture=payload.get('picture', ''),  # Optional field
+                name=payload.get('name') or payload.get('email'),  
+                picture=payload.get('picture'),
             )
         except ValueError as e:
             # Token validation errors (wrong audience, expired, etc.)

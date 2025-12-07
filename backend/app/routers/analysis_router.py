@@ -5,6 +5,8 @@ from io import BytesIO
 from pathlib import Path
 from uuid import UUID, uuid4
 
+from arq import create_pool
+from arq.connections import RedisSettings
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from PIL import Image
 from sqlalchemy import select
@@ -35,6 +37,50 @@ else:
     UPLOAD_DIR = BASE_DIR / "uploads"
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# Background task processor for development mode
+async def process_bg_task(analysis_id: UUID, save_path: Path, context: str | None):
+    """Process analysis in background task (development mode or Redis fallback)."""
+    async with AsyncSessionLocal() as bg:
+        try:
+            # Fetch fresh analysis row
+            res = await bg.execute(
+                select(Analysis).where(Analysis.id == analysis_id)
+            )
+            a = res.scalar_one()
+
+            a.status = AnalysisStatus.PROCESSING.value
+            await bg.commit()
+
+            # Gemini inline_data
+            with open(save_path, "rb") as f:
+                img_bytes = f.read()
+
+            gemini_image = {
+                "inline_data": {"mime_type": "image/png", "data": img_bytes}
+            }
+
+            from app.services.analysis_service import AnalysisService
+
+            # Run full pipeline
+            await AnalysisService.analyze_product(
+                bg, a, [gemini_image], context
+            )
+
+            logger.info(f"✔ Completed analysis {analysis_id}")
+
+        except Exception as e:
+            logger.error(f"❌ Background task failed: {e}")
+            # Mark FAILED
+            async with AsyncSessionLocal() as bg2:
+                res = await bg2.execute(
+                    select(Analysis).where(Analysis.id == analysis_id)
+                )
+                a2 = res.scalar_one()
+                a2.status = AnalysisStatus.FAILED.value
+                a2.error = str(e)
+                await bg2.commit()
 
 
 # -------------------------------------------------------------
@@ -93,53 +139,37 @@ async def create_analysis(
         logger.info(f"Created analysis {analysis_id}")
 
         # --------------------------------------------------
-        # DEV MODE: process directly without Redis
+        # Queue job for background processing
         # --------------------------------------------------
-        if settings.ENVIRONMENT == "development":
+        if settings.ENVIRONMENT == "production":
+            # Production: Use Redis queue with ARQ worker
+            try:
+                from arq import create_pool
+                from arq.connections import RedisSettings
+                
+                redis_settings = RedisSettings(
+                    host=settings.REDIS_HOST,
+                    port=settings.REDIS_PORT,
+                )
+                
+                redis = await create_pool(redis_settings)
+                await redis.enqueue_job(
+                    "process_analysis",
+                    str(analysis_id),
+                    context,
+                )
+                await redis.close()
+                logger.info(f"✓ Enqueued analysis {analysis_id} to Redis queue")
+                
+            except Exception as e:
+                logger.error(f"Failed to enqueue job to Redis: {e}")
+                # Fallback to background task if Redis fails
+                logger.warning(f"Falling back to background task processing")
+                asyncio.create_task(process_bg_task(analysis_id, save_path, context))
+        else:
+            # Development: Process directly without Redis
             logger.warning(f"⚠ DEV MODE: Processing {analysis_id} without Redis queue")
-
-            # Gemini inline_data (NO upload_file!)
-            with open(save_path, "rb") as f:
-                img_bytes = f.read()
-
-            gemini_image = {
-                "inline_data": {"mime_type": "image/png", "data": img_bytes}
-            }
-
-            from app.services.analysis_service import AnalysisService
-
-            async def process_bg():
-                async with AsyncSessionLocal() as bg:
-                    try:
-                        # Fetch fresh analysis row
-                        res = await bg.execute(
-                            select(Analysis).where(Analysis.id == analysis_id)
-                        )
-                        a = res.scalar_one()
-
-                        a.status = AnalysisStatus.PROCESSING.value
-                        await bg.commit()
-
-                        # Run full pipeline
-                        await AnalysisService.analyze_product(
-                            bg, a, [gemini_image], context
-                        )
-
-                        logger.info(f"✔ Completed analysis {analysis_id}")
-
-                    except Exception as e:
-                        logger.error(f"❌ Background failed: {e}")
-                        # Mark FAILED
-                        async with AsyncSessionLocal() as bg2:
-                            res = await bg2.execute(
-                                select(Analysis).where(Analysis.id == analysis_id)
-                            )
-                            a2 = res.scalar_one()
-                            a2.status = AnalysisStatus.FAILED.value
-                            a2.error = str(e)
-                            await bg2.commit()
-
-            asyncio.create_task(process_bg())
+            asyncio.create_task(process_bg_task(analysis_id, save_path, context))
 
         return AnalysisCreateResponse(
             data=AnalysisCreateData(id=analysis_id, status=analysis.status)

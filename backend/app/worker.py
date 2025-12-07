@@ -103,8 +103,7 @@ class WorkerSettings:
     job_timeout = 600  # 10 minutes timeout for analysis jobs
     max_tries = 3  # Retry failed jobs up to 3 times
     
-    # Queue settings
-    queue_name = "analysis"
+    # Use default ARQ queue (arq:queue)
     max_burst_jobs = 10
 
     # Health check
